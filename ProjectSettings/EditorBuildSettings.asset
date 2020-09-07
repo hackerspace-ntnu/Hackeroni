@@ -6,6 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
+    path: Assets/Scenes/InitialScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729
+  - enabled: 1
+    path: Assets/Scenes/MatchTwo.unity
+    guid: 89978a73e76dba04ba5652661c014dfb
+  - enabled: 1
+    path: Assets/Scenes/Rythmic_fisk.unity
+    guid: 6c0f494cbd21b48ccaef8aab949ab0b2
   m_configObjects: {}
