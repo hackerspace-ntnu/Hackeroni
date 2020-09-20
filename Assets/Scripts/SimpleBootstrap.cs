@@ -1,19 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Assets.Scripts;
 using TMPro;
 
 public class SimpleBootstrap : MonoBehaviour
 {
-    [SerializeField]
-    int counter = 0;
-
     public TMP_Text textObject;
-    string[] buttonNames = {"harmless button", "harmles buton", "hamless baton 😀", "harmlest button 😅", "hamless butt on? 😆", "start? 😂"};
     void Start()
     {
-        textObject.text = buttonNames[counter];
     }
 
     void OnSceneEnd(MinigameScene.Outcome outcome)
@@ -22,18 +18,31 @@ public class SimpleBootstrap : MonoBehaviour
     }
 
     // Update is called once per frame
-    public void OnButtonPress()
+    public void OnButtonPress(int buttonIndex)
     {
-        counter++;
-        if (counter > 5)
+        switch (buttonIndex)
         {
-            counter = 0;
-            MinigameScene.LoadMinigameScene("MatchTwo", OnSceneEnd); 
+            case 0:
+                MinigameScene.LoadMinigameScene("MatchTwo", OnSceneEnd); 
+                break;
+            case 1:
+                MinigameScene.LoadMinigameScene("Rythmic_fisk", OnSceneEnd); 
+                break;
+            // TODO Add new games here as they are made
+            case 2:
+                // MinigameScene.LoadMinigameScene("MatchTwo", OnSceneEnd); 
+                break;
+            case 3:
+                // MinigameScene.LoadMinigameScene("Rythmic_fisk", OnSceneEnd); 
+                break;
+            case 4:
+                // MinigameScene.LoadMinigameScene("MatchTwo", OnSceneEnd); 
+                break;
+            case 5:
+                // MinigameScene.LoadMinigameScene("Rythmic_fisk", OnSceneEnd); 
+                break;
+            default:
+                break;
         }
-        textObject.text = buttonNames[counter];
-    }
-    public void OnButtonPress2()
-    {
-        MinigameScene.LoadMinigameScene("Rythmic_fisk", OnSceneEnd); 
     }
 }
