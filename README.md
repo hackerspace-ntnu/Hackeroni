@@ -8,4 +8,4 @@ This is the repository containing Hackerspace's mobile game called Hackeroni
 - iOS Build Tools if building for iOS
 - git-lfs
 
-Latest revision: 13th September 2020
+Latest revision: 20th September 2020
