@@ -121,9 +121,9 @@ public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjør
             if(Random.Range(0f,1.5f) >= randomness) //0 til 1,99999(osv.) siden det er float
             {
                 SetBeat(baseBeat);
-                MakeArrow();
+                //MakeArrow();
                 numSpawnedArrows--;
-                print("SpawnedArrows: "+numSpawnedArrows);
+                //print("SpawnedArrows: "+numSpawnedArrows);
             }
             else
             {
