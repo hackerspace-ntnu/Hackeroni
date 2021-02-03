@@ -10,6 +10,7 @@ public class SimpleBootstrap : MonoBehaviour
     public TMP_Text textObject;
 
     private bool gameLaunched = false;
+    private int launchedGameId = 0;
     void Start()
     {
     }
@@ -17,7 +18,13 @@ public class SimpleBootstrap : MonoBehaviour
     void OnSceneEnd(MinigameScene.Outcome outcome)
     {
         gameLaunched = false;
-        Debug.LogFormat("Your highscore was: {0}", outcome.highscore);
+        var key = "highscore"+launchedGameId;
+        int prevHighScore = PlayerPrefs.GetInt(key, 0);
+        PlayerPrefs.SetInt(key, Mathf.Max(outcome.highscore, prevHighScore));
+        if (outcome.highscore > prevHighScore)
+        {
+            Debug.LogFormat("You got a new highscore: {0}", outcome.highscore);
+        }
     }
 
     // Update is called once per frame
@@ -26,6 +33,7 @@ public class SimpleBootstrap : MonoBehaviour
         if (!gameLaunched)
         {
             gameLaunched = true;
+            launchedGameId = buttonIndex;
 
             switch (buttonIndex)
             {
@@ -35,10 +43,10 @@ public class SimpleBootstrap : MonoBehaviour
                 case 1:
                     MinigameScene.LoadMinigameScene("Rythmic_fisk", OnSceneEnd); 
                     break;
-                // TODO Add new games here as they are made
                 case 2:
-                    // MinigameScene.LoadMinigameScene("MatchTwo", OnSceneEnd); 
+                    MinigameScene.LoadMinigameScene("TrickyTrumpTest", OnSceneEnd); 
                     break;
+                // TODO Add new games here as they are made
                 case 3:
                     // MinigameScene.LoadMinigameScene("Rythmic_fisk", OnSceneEnd); 
                     break;
@@ -49,6 +57,8 @@ public class SimpleBootstrap : MonoBehaviour
                     // MinigameScene.LoadMinigameScene("Rythmic_fisk", OnSceneEnd); 
                     break;
                 default:
+                    gameLaunched = false;
+                    launchedGameId = 0;
                     break;
             }           
         }

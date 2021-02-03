@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Rythmic_fisk.unity
     guid: 6c0f494cbd21b48ccaef8aab949ab0b2
+  - enabled: 1
+    path: Assets/Scenes/TrickyTrumpTest.unity
+    guid: 144c93c0f09bf4944a1059665bfbd2bf
   m_configObjects: {}
