@@ -19,7 +19,7 @@ namespace Assets.Scripts
             MinigameScene.loadSceneRegister = new Params()
             {
                 sceneName = sceneName,
-                callbackWhenMinigameSceneExits = (outcome) => 
+                callbackWhenMinigameSceneFinishedUnloading = (outcome) => 
                     { 
                         foreach(var rootObject in rootObjects)
                         {
@@ -54,18 +54,21 @@ namespace Assets.Scripts
             if (sceneParams == null)
                 return;
 
-            SceneManager.UnloadSceneAsync(sceneParams.sceneName);
-            if (sceneParams.callbackWhenMinigameSceneExits != null) 
-            {
-                sceneParams.callbackWhenMinigameSceneExits(outcome);
-            }
-            sceneParams.callbackWhenMinigameSceneExits = null; // Protect against double calling;
+            var loadOp = SceneManager.UnloadSceneAsync(sceneParams.sceneName);
+
+            loadOp.completed += (o) => {
+                if (sceneParams.callbackWhenMinigameSceneFinishedUnloading != null) 
+                {
+                    sceneParams.callbackWhenMinigameSceneFinishedUnloading(outcome);
+                }
+                sceneParams.callbackWhenMinigameSceneFinishedUnloading = null; // Protect against double calling;
+            };
         }
 
         [System.Serializable]
         private class Params
         {
-            public System.Action<Outcome> callbackWhenMinigameSceneExits;
+            public System.Action<Outcome> callbackWhenMinigameSceneFinishedUnloading;
             public string sceneName;
         }
         [System.Serializable]
