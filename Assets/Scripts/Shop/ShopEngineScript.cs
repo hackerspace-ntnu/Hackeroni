@@ -6,20 +6,20 @@ using TMPro;
 
 public class ShopEngineScript : MonoBehaviour
 {
-
     public GameObject HatDisplay;
     public GameObject SkinDisplay;
+    public GameObject WallpaperDisplay;
+    public GameObject HackeroniText;
 
     public GameObject ShopButtonPrefab;
     public GameObject ContentObject;
 
     public List<GameObject> Tabs = new List<GameObject>();
 
-    private string CurrentTab;
-
     private SpriteStatus CurrentHat;
     private SpriteStatus CurrentSkin;
     private SpriteStatus CurrentWallpaper;
+    private int Hackeronis;
 
     private List<SpriteStatus> HatList = new List<SpriteStatus>();
     private List<SpriteStatus> SkinList = new List<SpriteStatus>();
@@ -29,12 +29,20 @@ public class ShopEngineScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Hackeronis = PlayerPrefs.GetInt("Hackeronis", 0);
+        Hackeronis = 1000;
         LoadPlayerPrefs("Hats");
         LoadPlayerPrefs("Skins");
         LoadPlayerPrefs("Wallpapers");
         LoadColorPlayerPrefs();
 
+        print(CurrentHat.Name + ", " + CurrentSkin.Name);
+        HatDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Hats/" + CurrentHat.Name + "-" + CurrentHat.Cost);
+        SkinDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Skins/" + CurrentSkin.Name + "-" + CurrentSkin.Cost);
+        //WallpaperDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Wallpapers/" + CurrentWallpaper.Name);
+
         DisplayHats();
+        HackeroniText.GetComponent<TextMeshProUGUI>().text = Hackeronis + " Hackeronis";
     }
 
     void LoadPlayerPrefs(string Type)
@@ -59,13 +67,14 @@ public class ShopEngineScript : MonoBehaviour
             WallpaperList.Clear();
         }
 
+        bool NothingEquipped = true;
         foreach (Sprite Sprite in SpriteList)
         {
             string Avalability = "Unavailable";
 
-            if(Sprite.name.Split('-')[0] == "None" || Sprite.name.Split('-')[0] == "Default")
+            if (Sprite.name.Split('-')[0] == "None" || Sprite.name.Split('-')[0] == "Default")
             {
-                Avalability = "Equipped";
+                Avalability = "Available";
             }
 
             if(PlayerPrefString.Contains(Sprite.name))
@@ -75,15 +84,13 @@ public class ShopEngineScript : MonoBehaviour
                     if(SpriteStatus.Split('=')[0] == Sprite.name)
                     {
                         Avalability = SpriteStatus.Split('=')[1];
+                        if(Avalability == "Equipped")
+                        {
+                            NothingEquipped = false;
+                        }
                     }
                 }
             }
-
-            if (Sprite.name.Split('-')[0] == "None" || Sprite.name.Split('-')[0] == "Default")
-            {
-                Avalability = "Equipped";
-            }
-
 
             SpriteStatus newSpriteStatus = new SpriteStatus() { Sprite = Sprite, Name = Sprite.name.Split('-')[0], Cost = int.Parse(Sprite.name.Split('-')[1]), Status = Avalability };
 
@@ -94,6 +101,15 @@ public class ShopEngineScript : MonoBehaviour
                 if(newSpriteStatus.Status == "Equipped")
                 {
                     CurrentHat = newSpriteStatus;
+
+                    if (CurrentHat.Name == "None")
+                    {
+                        HatDisplay.SetActive(false);
+                    }
+                    else
+                    {
+                        HatDisplay.SetActive(true);
+                    }
                 }
             }
             else if (Type == "Skins")
@@ -120,10 +136,32 @@ public class ShopEngineScript : MonoBehaviour
 
         if (Type == "Hats")
         {
+            if(NothingEquipped == true)
+            {
+                foreach(SpriteStatus Hat in HatList)
+                {
+                    if(Hat.Name == "None")
+                    {
+                        CurrentHat = Hat;
+                        Hat.Status = "Equipped";
+                    }
+                }
+            }
             HatList.Sort(SortByCost);
         }
         else if (Type == "Skins")
         {
+            if (NothingEquipped == true)
+            {
+                foreach (SpriteStatus Skin in SkinList)
+                {
+                    if (Skin.Name == "Default")
+                    {
+                        CurrentSkin = Skin;
+                        Skin.Status = "Equipped";
+                    }
+                }
+            }
             SkinList.Sort(SortByCost);
         }
         else if (Type == "Wallpapers")
@@ -133,7 +171,7 @@ public class ShopEngineScript : MonoBehaviour
 
         PlayerPrefs.SetString(Type, NewPlayerPrefString);
 
-        print(NewPlayerPrefString);
+        print("Load: " + NewPlayerPrefString);
     }
 
     void LoadColorPlayerPrefs()
@@ -292,6 +330,8 @@ public class ShopEngineScript : MonoBehaviour
             ShopButton.transform.GetChild(0).GetComponent<Image>().sprite = Wallpaper.Sprite;
             ShopButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = Wallpaper.Name.Replace("_", " ");
 
+            ShopButton.GetComponent<ShopButtonScript>().ButtonCode = "EquipWallpaper=" + Wallpaper.Name;
+
             i++;
         }
 
@@ -339,9 +379,148 @@ public class ShopEngineScript : MonoBehaviour
             DisplayWallpapers();
         }
     }
+
     void Equip(string ButtonCode)
     {
+        if(ButtonCode.Split('=')[0] == "EquipHat")
+        {
+            foreach(SpriteStatus Hat in HatList)
+            {
+                if(Hat.Name == ButtonCode.Split('=')[1])
+                {
+                    if (Hat.Status == "Available")
+                    {
+                        CurrentHat.Status = "Available";
+                        CurrentHat = Hat;
+                        Hat.Status = "Equipped";
+                        HatDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Hats/" + Hat.Name + "-" + CurrentHat.Cost);
 
+                        if (Hat.Name == "None")
+                        {
+                            HatDisplay.SetActive(false);
+                        }
+                        else
+                        {
+                            HatDisplay.SetActive(true);
+                        }
+                    }
+                    else if(Hat.Status == "Unavailable")
+                    {
+                        if (Hackeronis >= Hat.Cost)
+                        {
+                            CurrentHat.Status = "Available";
+                            CurrentHat = Hat;
+                            Hat.Status = "Equipped";
+
+                            Hackeronis -= Hat.Cost;
+                            HatDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Hats/" + Hat.Name + "-" + CurrentHat.Cost);
+
+                            if(Hat.Name == "None")
+                            {
+                                HatDisplay.SetActive(false);
+                            }
+                            else
+                            {
+                                HatDisplay.SetActive(true);
+                            }
+                        }
+                    }
+
+                    SavePlayerPrefs("Hats");
+                }
+            }
+        }
+        else if (ButtonCode.Split('=')[0] == "EquipSkin")
+        {
+            foreach (SpriteStatus Skin in SkinList)
+            {
+                if (Skin.Name == ButtonCode.Split('=')[1])
+                {
+                    if (Skin.Status == "Available")
+                    {
+                        CurrentSkin.Status = "Available";
+                        CurrentSkin = Skin;
+                        Skin.Status = "Equipped";
+                        SkinDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Skin/" + Skin.Name + "-" + CurrentSkin.Cost);
+                    }
+                    else if (Skin.Status == "Unavailable")
+                    {
+                        if (Hackeronis >= Skin.Cost)
+                        {
+                            CurrentHat.Status = "Available";
+                            CurrentHat = Skin;
+                            Skin.Status = "Equipped";
+
+                            Hackeronis -= Skin.Cost;
+                            SkinDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Skin/" + Skin.Name + "-" + CurrentSkin.Cost);
+                        }
+                    }
+                    SavePlayerPrefs("Skins");
+                }
+            }
+        }
+        else if (ButtonCode.Split('=')[0] == "EquipWallpaper")
+        {
+            foreach (SpriteStatus Wallpaper in WallpaperList)
+            {
+                if (Wallpaper.Name == ButtonCode.Split('=')[1])
+                {
+                    if (Wallpaper.Status == "Available")
+                    {
+                        CurrentWallpaper.Status = "Available";
+                        CurrentWallpaper = Wallpaper;
+                        Wallpaper.Status = "Equipped";
+                        WallpaperDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Wallpaper/" + Wallpaper.Name + "-" + CurrentWallpaper.Cost);
+                    }
+                    else if (Wallpaper.Status == "Unavailable")
+                    {
+                        if (Hackeronis >= Wallpaper.Cost)
+                        {
+                            CurrentWallpaper.Status = "Available";
+                            CurrentWallpaper = Wallpaper;
+                            Wallpaper.Status = "Equipped";
+
+                            Hackeronis -= Wallpaper.Cost;
+                            WallpaperDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Wallpaper/" + Wallpaper.Name + "-" + CurrentWallpaper.Cost);
+                        }
+                    }
+                    SavePlayerPrefs("Wallpapers");
+                }
+            }
+        }
+
+        HackeroniText.GetComponent<TextMeshProUGUI>().text = Hackeronis + " Hackeronis";
+    }
+
+    void SavePlayerPrefs(string Type)
+    {
+        List<SpriteStatus> SpriteStatusList = new List<SpriteStatus>();
+
+        if (Type == "Hats")
+        {
+            SpriteStatusList = HatList;
+        }
+        else if (Type == "Skins")
+        {
+            SpriteStatusList = SkinList;
+        }
+        else if (Type == "Wallpapers")
+        {
+            SpriteStatusList = WallpaperList;
+        }
+
+        string NewPlayerPrefString = "";
+
+        foreach(SpriteStatus SpriteStatus in SpriteStatusList)
+        {
+            NewPlayerPrefString += SpriteStatus.Name + "-";
+            NewPlayerPrefString += SpriteStatus.Cost + "=";
+            NewPlayerPrefString += SpriteStatus.Status + ",";
+        }
+
+        PlayerPrefs.SetString(Type, NewPlayerPrefString);
+
+        print("Save: " + NewPlayerPrefString);
     }
 
     static int SortByCost(SpriteStatus One, SpriteStatus Two)
