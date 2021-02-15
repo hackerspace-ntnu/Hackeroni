@@ -11,6 +11,7 @@ public class MenuSwipeScript : MonoBehaviour, IEndDragHandler, IBeginDragHandler
     private int currentIndex = 0;
     private int childCount;
     private bool isDragging = false;
+    private float previousScrollingSign = 0;
 
     void Awake()
     {
@@ -24,11 +25,16 @@ public class MenuSwipeScript : MonoBehaviour, IEndDragHandler, IBeginDragHandler
         if (isDragging == false) {
             var desiredPos = CalculateDesiredScrollPos();
             var currentPos = scrollRect.horizontalNormalizedPosition;
-            var dist = Mathf.Abs(desiredPos - currentPos);
-            if (dist > 0.0001) {
+            var currentScrollingSign = Mathf.Sign(desiredPos - currentPos);
+
+            if (previousScrollingSign == 0 || currentScrollingSign == previousScrollingSign) {
+                var dist = Mathf.Abs(desiredPos - currentPos);
                 scrollRect.horizontalNormalizedPosition += (desiredPos - currentPos) * Time.deltaTime * Mathf.Pow(dist, -0.6f) *2;
+                previousScrollingSign = currentScrollingSign; 
             } else {
                 scrollRect.horizontalNormalizedPosition = desiredPos;
+                isDragging = true;
+                previousScrollingSign = 0;
             }
         }
     }
@@ -66,5 +72,6 @@ public class MenuSwipeScript : MonoBehaviour, IEndDragHandler, IBeginDragHandler
 
     public void OnBeginDrag(PointerEventData data) {
         isDragging = true;
+        previousScrollingSign = 0;
     }
 }
