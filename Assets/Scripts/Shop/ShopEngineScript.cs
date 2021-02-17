@@ -16,62 +16,137 @@ public class ShopEngineScript : MonoBehaviour
 
     public List<GameObject> Tabs = new List<GameObject>();
 
-    private SpriteStatus CurrentHat;
-    private SpriteStatus CurrentSkin;
-    private SpriteStatus CurrentWallpaper;
     private int Hackeronis;
 
-    private List<SpriteStatus> HatList = new List<SpriteStatus>();
-    private List<SpriteStatus> SkinList = new List<SpriteStatus>();
-    private List<SpriteStatus> WallpaperList = new List<SpriteStatus>();
     private List<ColorStatus> ColorList = new List<ColorStatus>();
+
+    List<SpriteStatus>[] SpriteStatusLists = new List<SpriteStatus>[3];
+    string[] ListName = new string[] { "Hats", "Skins", "Wallpapers" };
+    SpriteStatus[] CurrentEquipment = new SpriteStatus[3];
+    ColorStatus CurrentColor = new ColorStatus();
+    GameObject[] EquipmentDisplays = new GameObject[3];
+
+    private int PreviousHackeronis;
+    private float HackeronisAnimationTimer;
 
     // Start is called before the first frame update
     void Start()
     {
+        SpriteStatusLists = new List<SpriteStatus>[3] { new List<SpriteStatus>(), new List<SpriteStatus>(), new List<SpriteStatus>() };
+        CurrentEquipment = new SpriteStatus[3] { new SpriteStatus(), new SpriteStatus(), new SpriteStatus() };
+        EquipmentDisplays = new GameObject[3] { HatDisplay, SkinDisplay, WallpaperDisplay };
+
         Hackeronis = PlayerPrefs.GetInt("Hackeronis", 0);
-        Hackeronis = 1000;
-        LoadPlayerPrefs("Hats");
-        LoadPlayerPrefs("Skins");
-        LoadPlayerPrefs("Wallpapers");
+        LoadPlayerPrefs(0);
+        LoadPlayerPrefs(1);
+        LoadPlayerPrefs(2);
         LoadColorPlayerPrefs();
 
-        print(CurrentHat.Name + ", " + CurrentSkin.Name);
-        HatDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Hats/" + CurrentHat.Name + "-" + CurrentHat.Cost);
-        SkinDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Skins/" + CurrentSkin.Name + "-" + CurrentSkin.Cost);
-        //WallpaperDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Wallpapers/" + CurrentWallpaper.Name);
+        CheckForDiscrepancies();
+        CheckForColorDiscrepancies();
 
-        DisplayHats();
+        DisplayCurrentEquipment();
+
+        DisplayShopItems(0);
         HackeroniText.GetComponent<TextMeshProUGUI>().text = Hackeronis + " Hackeronis";
     }
 
-    void LoadPlayerPrefs(string Type)
+    void CheckForDiscrepancies()
     {
-        List<Sprite> SpriteList = new List<Sprite>(Resources.LoadAll<Sprite>(Type));
+        for (int i = 0; i < SpriteStatusLists.Length; i++)
+        {
+            int EquippedCount = 0;
+            foreach (SpriteStatus SpriteStatus in SpriteStatusLists[i])
+            {
+                if (SpriteStatus.Status == "Equipped")
+                {
+                    EquippedCount += 1;
+                }
+            }
 
-        string PlayerPrefString = PlayerPrefs.GetString(Type, "");
+            if (EquippedCount != 1)
+            {
+                foreach (SpriteStatus SpriteStatus in SpriteStatusLists[i])
+                {
+                    if (SpriteStatus.Name == "None" || SpriteStatus.Name == "Default")
+                    {
+                        SpriteStatus.Status = "Equipped";
+                    }
+                    else
+                    {
+                        if(SpriteStatus.Status == "Equipped")
+                        {
+                            SpriteStatus.Status = "Available";
+                        }
+                    }
+                }
+                SavePlayerPrefs(i);
+                LoadPlayerPrefs(i);
+            }
+        }
+    }
+
+    void CheckForColorDiscrepancies()
+    {
+        int EquippedCount = 0;
+        foreach (ColorStatus ColorStatus in ColorList)
+        {
+            if (ColorStatus.Status == "Equipped")
+            {
+                EquippedCount += 1;
+            }
+        }
+
+        if (EquippedCount != 1)
+        {
+            foreach (ColorStatus ColorStatus in ColorList)
+            {
+                if (ColorStatus.Name == "Default")
+                {
+                    print("Default is equipped!");
+                    ColorStatus.Status = "Equipped";
+                }
+                else
+                {
+                    if (ColorStatus.Status == "Equipped")
+                    {
+                        ColorStatus.Status = "Available";
+                    }
+                }
+            }
+            print("Current Color2: " + CurrentColor.Name);
+            SaveColorPlayerPrefs();
+            print("Current Color3: " + CurrentColor.Name);
+            LoadColorPlayerPrefs();
+            print("Current Color4: " + CurrentColor.Name);
+        }
+    }
+
+    void DisplayCurrentEquipment()
+    {
+        HatDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Hats/" + CurrentEquipment[0].Name + "-" + CurrentEquipment[0].Cost);
+        if(CurrentEquipment[0].Name == "None") {HatDisplay.SetActive(false);}
+        else{HatDisplay.SetActive(true);}
+
+        SkinDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Skins/" + CurrentEquipment[1].Name + "-" + CurrentEquipment[1].Cost);
+        SkinDisplay.GetComponent<Image>().color = CurrentColor.Color;
+        WallpaperDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Wallpapers/" + CurrentEquipment[2].Name + "-" + CurrentEquipment[2].Cost);
+    }
+
+    void LoadPlayerPrefs(int Type)
+    {
+        List<Sprite> SpriteList = new List<Sprite>(Resources.LoadAll<Sprite>(ListName[Type]));
+
+        string PlayerPrefString = PlayerPrefs.GetString(ListName[Type], "");
         string[] PlayerPrefArray = PlayerPrefString.Split(',');
 
         string NewPlayerPrefString = "";
 
-        if(Type == "Hats")
-        {
-            HatList.Clear();
-        }
-        else if (Type == "Skins")
-        {
-            SkinList.Clear();
-        }
-        else if (Type == "Wallpapers")
-        {
-            WallpaperList.Clear();
-        }
+        SpriteStatusLists[Type] = new List<SpriteStatus>();
 
-        bool NothingEquipped = true;
         foreach (Sprite Sprite in SpriteList)
         {
             string Avalability = "Unavailable";
-
             if (Sprite.name.Split('-')[0] == "None" || Sprite.name.Split('-')[0] == "Default")
             {
                 Avalability = "Available";
@@ -84,94 +159,26 @@ public class ShopEngineScript : MonoBehaviour
                     if(SpriteStatus.Split('=')[0] == Sprite.name)
                     {
                         Avalability = SpriteStatus.Split('=')[1];
-                        if(Avalability == "Equipped")
-                        {
-                            NothingEquipped = false;
-                        }
                     }
                 }
             }
 
             SpriteStatus newSpriteStatus = new SpriteStatus() { Sprite = Sprite, Name = Sprite.name.Split('-')[0], Cost = int.Parse(Sprite.name.Split('-')[1]), Status = Avalability };
+            SpriteStatusLists[Type].Add(newSpriteStatus);
 
-            if (Type == "Hats")
+            if(Avalability == "Equipped")
             {
-                HatList.Add(newSpriteStatus);
-
-                if(newSpriteStatus.Status == "Equipped")
-                {
-                    CurrentHat = newSpriteStatus;
-
-                    if (CurrentHat.Name == "None")
-                    {
-                        HatDisplay.SetActive(false);
-                    }
-                    else
-                    {
-                        HatDisplay.SetActive(true);
-                    }
-                }
-            }
-            else if (Type == "Skins")
-            {
-                SkinList.Add(newSpriteStatus);
-
-                if (newSpriteStatus.Status == "Equipped")
-                {
-                    CurrentSkin = newSpriteStatus;
-                }
-            }
-            else if (Type == "Wallpapers")
-            {
-                WallpaperList.Add(newSpriteStatus);
-
-                if (newSpriteStatus.Status == "Equipped")
-                {
-                    CurrentWallpaper = newSpriteStatus;
-                }
+                CurrentEquipment[Type] = newSpriteStatus;
             }
 
             NewPlayerPrefString += Sprite.name + "=" + Avalability + ",";
         }
 
-        if (Type == "Hats")
-        {
-            if(NothingEquipped == true)
-            {
-                foreach(SpriteStatus Hat in HatList)
-                {
-                    if(Hat.Name == "None")
-                    {
-                        CurrentHat = Hat;
-                        Hat.Status = "Equipped";
-                    }
-                }
-            }
-            HatList.Sort(SortByCost);
-        }
-        else if (Type == "Skins")
-        {
-            if (NothingEquipped == true)
-            {
-                foreach (SpriteStatus Skin in SkinList)
-                {
-                    if (Skin.Name == "Default")
-                    {
-                        CurrentSkin = Skin;
-                        Skin.Status = "Equipped";
-                    }
-                }
-            }
-            SkinList.Sort(SortByCost);
-        }
-        else if (Type == "Wallpapers")
-        {
-            WallpaperList.Sort(SortByCost);
-        }
+        SpriteStatusLists[Type].Sort(SortByCost);
 
-        PlayerPrefs.SetString(Type, NewPlayerPrefString);
+        PlayerPrefs.SetString(ListName[Type], NewPlayerPrefString);
 
-        print("Load: " + NewPlayerPrefString);
+        print("Load " + Type + ": " + "Current: " + CurrentEquipment[Type].Name + "\n" + NewPlayerPrefString);
     }
 
     void LoadColorPlayerPrefs()
@@ -193,35 +200,46 @@ public class ShopEngineScript : MonoBehaviour
             new ColorStatus() { Name = "Golden", Color = new Color32(255, 211, 0, 255)},
             new ColorStatus() { Name = "Obsidian", Color = new Color32(50, 5, 63, 255)},
             new ColorStatus() { Name = "Diamond", Color = new Color32(90, 231, 255, 255)},
-            new ColorStatus() { Name = "Black Hole", Color = new Color32(0, 0, 0, 255)},
+            new ColorStatus() { Name = "Black_Hole", Color = new Color32(0, 0, 0, 255)},
         };
 
-        string PlayerPrefString = PlayerPrefs.GetString("Color", "");
+        string PlayerPrefString = PlayerPrefs.GetString("Colors", "");
         string[] PlayerPrefArray = PlayerPrefString.Split(',');
-        string newPlayerPrefString = "";
+        string NewPlayerPrefString = "";
 
         for(int i = 0; i < ColorList.Count; i++)
         {
             ColorList[i].Cost = 120 * i;
 
             string Availability = "Unavailable";
-            if(i == 0)
+            if(ColorList[i].Name == "Default")
             {
                 Availability = "Available";
             }
 
             foreach(string ColorStatus in PlayerPrefArray)
             {
-                if(ColorStatus.Split('=')[0] == ColorList[i].Name)
+                if(ColorStatus.Split('=')[0] == ColorList[i].Name + "-" + ColorList[i].Cost)
                 {
-                    Availability = ColorList[i].Status;
+                    if (ColorStatus.Split('=')[1] == "Equipped" || ColorStatus.Split('=')[1] == "Available" || ColorStatus.Split('=')[1] == "Unavailable")
+                    {
+                        Availability = ColorStatus.Split('=')[1];
+                    }
                 }
             }
 
             ColorList[i].Status = Availability;
+            NewPlayerPrefString += ColorList[i].Name + "=" + Availability + ",";
 
-            newPlayerPrefString += ColorList[i].Name + "=" + Availability;
+            if (Availability == "Equipped")
+            {
+                CurrentColor = ColorList[i];
+            }
         }
+
+        PlayerPrefs.SetString("Colors", NewPlayerPrefString);
+
+        print("Load Colors" + ": " + "Current: " + CurrentColor.Name + "\n" + NewPlayerPrefString);
     }
 
     void ClearShopButtons()
@@ -232,12 +250,12 @@ public class ShopEngineScript : MonoBehaviour
         }
     }
 
-    void DisplayHats() {
+    void DisplayShopItems(int ItemType) {
 
         ClearShopButtons();
 
         int i = 0;
-        foreach (SpriteStatus Hat in HatList)
+        foreach (SpriteStatus ShopItem in SpriteStatusLists[ItemType])
         {
             GameObject ShopButton = Instantiate(ShopButtonPrefab);
             ShopButton.transform.SetParent(ContentObject.transform);
@@ -247,10 +265,30 @@ public class ShopEngineScript : MonoBehaviour
             float yPos = ((((i + 1) % 2) * 2) - 1) * 120;
             ShopButton.GetComponent<RectTransform>().anchoredPosition = new Vector3(xPos, yPos);
 
-            ShopButton.transform.GetChild(0).GetComponent<Image>().sprite = Hat.Sprite;
-            ShopButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = Hat.Name.Replace("_", " ");
+            ShopButton.transform.GetChild(0).GetComponent<Image>().sprite = ShopItem.Sprite;
+            ShopButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = ShopItem.Name.Replace("_", " ");
+            ShopButton.transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = "Costs: " + ShopItem.Cost.ToString();
 
-            ShopButton.GetComponent<ShopButtonScript>().ButtonCode = "EquipHat=" + Hat.Name;
+            ShopButton.GetComponent<ShopButtonScript>().ButtonCode = "Equip" + ListName[ItemType] + "=" + ShopItem.Name;
+
+            if(ShopItem.Status == "Equipped")
+            {
+                ShopButton.transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = "Equipped";
+                ShopButton.GetComponent<Image>().color = new Color32(48, 131, 220, 255);
+                ShopButton.GetComponent<Button>().interactable = false;
+            }
+            else if(ShopItem.Status == "Available")
+            {
+                ShopButton.transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = "Bought";
+                ShopButton.GetComponent<Image>().color = new Color32(40, 140, 136, 255);
+                ShopButton.GetComponent<Button>().interactable = true;
+            }
+            else
+            {
+                ShopButton.transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = "Costs: " + ShopItem.Cost.ToString();
+                ShopButton.GetComponent<Image>().color = new Color32(61, 43, 61, 255);
+                ShopButton.GetComponent<Button>().interactable = true;
+            }
 
             i++;
         }
@@ -259,12 +297,12 @@ public class ShopEngineScript : MonoBehaviour
         ContentObject.GetComponent<RectTransform>().sizeDelta = new Vector2(ContentObjectWidth, 484);
     }
 
-    void DisplaySkins()
+    void DisplayColorItems()
     {
         ClearShopButtons();
 
         int i = 0;
-        foreach (SpriteStatus Skin in SkinList)
+        foreach (ColorStatus ColorItem in ColorList)
         {
             GameObject ShopButton = Instantiate(ShopButtonPrefab);
             ShopButton.transform.SetParent(ContentObject.transform);
@@ -274,68 +312,36 @@ public class ShopEngineScript : MonoBehaviour
             float yPos = ((((i + 1) % 2) * 2) - 1) * 120;
             ShopButton.GetComponent<RectTransform>().anchoredPosition = new Vector3(xPos, yPos);
 
-            ShopButton.transform.GetChild(0).GetComponent<Image>().sprite = Skin.Sprite;
-            ShopButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = Skin.Name.Replace("_", " ");
+            ShopButton.transform.GetChild(0).GetComponent<Image>().sprite = CurrentEquipment[1].Sprite;
+            ShopButton.transform.GetChild(0).GetComponent<Image>().color = ColorItem.Color;
+            ShopButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = ColorItem.Name.Replace("_", " ");
+            ShopButton.transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = "Costs: " + ColorItem.Cost.ToString();
 
-            ShopButton.GetComponent<ShopButtonScript>().ButtonCode = "EquipSkin=" + Skin.Name;
+            ShopButton.GetComponent<ShopButtonScript>().ButtonCode = "EquipColors=" + ColorItem.Name;
 
-            i++;
-        }
-
-        int ContentObjectWidth = 300 + (Mathf.FloorToInt((i-1) / 2) * 250);
-        ContentObject.GetComponent<RectTransform>().sizeDelta = new Vector2(ContentObjectWidth, 484);
-    }
-
-    void DisplayColors()
-    {
-        ClearShopButtons();
-
-        int i = 0;
-        foreach (ColorStatus SkinColor in ColorList)
-        {
-            GameObject ShopButton = Instantiate(ShopButtonPrefab);
-            ShopButton.transform.SetParent(ContentObject.transform);
-            ShopButton.GetComponent<RectTransform>().localScale = new Vector3(1, 1, 1);
-
-            float xPos = (Mathf.Floor(i / 2f) * 250) + 50;
-            float yPos = ((((i + 1) % 2) * 2) - 1) * 120;
-            ShopButton.GetComponent<RectTransform>().anchoredPosition = new Vector3(xPos, yPos);
-
-            ShopButton.transform.GetChild(0).GetComponent<Image>().sprite = CurrentSkin.Sprite;
-            ShopButton.transform.GetChild(0).GetComponent<Image>().color = SkinColor.Color;
-            ShopButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = SkinColor.Name;
+            if (ColorItem.Status == "Equipped")
+            {
+                ShopButton.transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = "Equipped";
+                ShopButton.GetComponent<Image>().color = new Color32(48, 131, 220, 255);
+                ShopButton.GetComponent<Button>().interactable = false;
+            }
+            else if (ColorItem.Status == "Available")
+            {
+                ShopButton.transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = "Bought";
+                ShopButton.GetComponent<Image>().color = new Color32(40, 140, 136, 255);
+                ShopButton.GetComponent<Button>().interactable = true;
+            }
+            else
+            {
+                ShopButton.transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = "Costs: " + ColorItem.Cost.ToString();
+                ShopButton.GetComponent<Image>().color = new Color32(61, 43, 61, 255);
+                ShopButton.GetComponent<Button>().interactable = true;
+            }
 
             i++;
         }
 
-        int ContentObjectWidth = 300 + (Mathf.FloorToInt((i-1) / 2) * 250);
-        ContentObject.GetComponent<RectTransform>().sizeDelta = new Vector2(ContentObjectWidth, 484);
-    }
-
-    void DisplayWallpapers()
-    {
-        ClearShopButtons();
-
-        int i = 0;
-        foreach (SpriteStatus Wallpaper in WallpaperList)
-        {
-            GameObject ShopButton = Instantiate(ShopButtonPrefab);
-            ShopButton.transform.SetParent(ContentObject.transform);
-            ShopButton.GetComponent<RectTransform>().localScale = new Vector3(1, 1, 1);
-
-            float xPos = (Mathf.Floor(i / 2f) * 250) + 50;
-            float yPos = ((((i + 1) % 2) * 2) - 1) * 120;
-            ShopButton.GetComponent<RectTransform>().anchoredPosition = new Vector3(xPos, yPos);
-
-            ShopButton.transform.GetChild(0).GetComponent<Image>().sprite = Wallpaper.Sprite;
-            ShopButton.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = Wallpaper.Name.Replace("_", " ");
-
-            ShopButton.GetComponent<ShopButtonScript>().ButtonCode = "EquipWallpaper=" + Wallpaper.Name;
-
-            i++;
-        }
-
-        int ContentObjectWidth = 300 + (Mathf.FloorToInt((i-1) / 2) * 250);
+        int ContentObjectWidth = 300 + (Mathf.FloorToInt((i - 1) / 2) * 250);
         ContentObject.GetComponent<RectTransform>().sizeDelta = new Vector2(ContentObjectWidth, 484);
     }
 
@@ -344,6 +350,10 @@ public class ShopEngineScript : MonoBehaviour
         if(ButtonCode.Contains("Tab"))
         {
             SwitchTab(ButtonCode);
+        }
+        else if (ButtonCode.Contains("EquipColors"))
+        {
+            EquipColor(ButtonCode);
         }
         else if (ButtonCode.Contains("Equip"))
         {
@@ -361,153 +371,112 @@ public class ShopEngineScript : MonoBehaviour
         if (ButtonCode == "HatsTab")
         {
             Tabs[0].GetComponent<Button>().interactable = false;
-            DisplayHats();
+            DisplayShopItems(0);
         }
         else if(ButtonCode == "SkinsTab")
         {
             Tabs[1].GetComponent<Button>().interactable = false;
-            DisplaySkins();
+            DisplayShopItems(1);
         }
         else if (ButtonCode == "ColorsTab")
         {
             Tabs[2].GetComponent<Button>().interactable = false;
-            DisplayColors();
+            DisplayColorItems();
         }
         else if (ButtonCode == "WallpapersTab")
         {
             Tabs[3].GetComponent<Button>().interactable = false;
-            DisplayWallpapers();
+            DisplayShopItems(2);
         }
     }
 
     void Equip(string ButtonCode)
     {
-        if(ButtonCode.Split('=')[0] == "EquipHat")
+        int Type = 0;
+
+        if (ButtonCode.Split('=')[0] == "EquipHats")
         {
-            foreach(SpriteStatus Hat in HatList)
-            {
-                if(Hat.Name == ButtonCode.Split('=')[1])
-                {
-                    if (Hat.Status == "Available")
-                    {
-                        CurrentHat.Status = "Available";
-                        CurrentHat = Hat;
-                        Hat.Status = "Equipped";
-                        HatDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Hats/" + Hat.Name + "-" + CurrentHat.Cost);
-
-                        if (Hat.Name == "None")
-                        {
-                            HatDisplay.SetActive(false);
-                        }
-                        else
-                        {
-                            HatDisplay.SetActive(true);
-                        }
-                    }
-                    else if(Hat.Status == "Unavailable")
-                    {
-                        if (Hackeronis >= Hat.Cost)
-                        {
-                            CurrentHat.Status = "Available";
-                            CurrentHat = Hat;
-                            Hat.Status = "Equipped";
-
-                            Hackeronis -= Hat.Cost;
-                            HatDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Hats/" + Hat.Name + "-" + CurrentHat.Cost);
-
-                            if(Hat.Name == "None")
-                            {
-                                HatDisplay.SetActive(false);
-                            }
-                            else
-                            {
-                                HatDisplay.SetActive(true);
-                            }
-                        }
-                    }
-
-                    SavePlayerPrefs("Hats");
-                }
-            }
+            Type = 0;
         }
-        else if (ButtonCode.Split('=')[0] == "EquipSkin")
+        else if (ButtonCode.Split('=')[0] == "EquipSkins")
         {
-            foreach (SpriteStatus Skin in SkinList)
-            {
-                if (Skin.Name == ButtonCode.Split('=')[1])
-                {
-                    if (Skin.Status == "Available")
-                    {
-                        CurrentSkin.Status = "Available";
-                        CurrentSkin = Skin;
-                        Skin.Status = "Equipped";
-                        SkinDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Skin/" + Skin.Name + "-" + CurrentSkin.Cost);
-                    }
-                    else if (Skin.Status == "Unavailable")
-                    {
-                        if (Hackeronis >= Skin.Cost)
-                        {
-                            CurrentHat.Status = "Available";
-                            CurrentHat = Skin;
-                            Skin.Status = "Equipped";
-
-                            Hackeronis -= Skin.Cost;
-                            SkinDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Skin/" + Skin.Name + "-" + CurrentSkin.Cost);
-                        }
-                    }
-                    SavePlayerPrefs("Skins");
-                }
-            }
+            Type = 1;
         }
-        else if (ButtonCode.Split('=')[0] == "EquipWallpaper")
+        else if (ButtonCode.Split('=')[0] == "EquipWallpapers")
         {
-            foreach (SpriteStatus Wallpaper in WallpaperList)
-            {
-                if (Wallpaper.Name == ButtonCode.Split('=')[1])
-                {
-                    if (Wallpaper.Status == "Available")
-                    {
-                        CurrentWallpaper.Status = "Available";
-                        CurrentWallpaper = Wallpaper;
-                        Wallpaper.Status = "Equipped";
-                        WallpaperDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Wallpaper/" + Wallpaper.Name + "-" + CurrentWallpaper.Cost);
-                    }
-                    else if (Wallpaper.Status == "Unavailable")
-                    {
-                        if (Hackeronis >= Wallpaper.Cost)
-                        {
-                            CurrentWallpaper.Status = "Available";
-                            CurrentWallpaper = Wallpaper;
-                            Wallpaper.Status = "Equipped";
-
-                            Hackeronis -= Wallpaper.Cost;
-                            WallpaperDisplay.GetComponent<Image>().sprite = Resources.Load<Sprite>("Wallpaper/" + Wallpaper.Name + "-" + CurrentWallpaper.Cost);
-                        }
-                    }
-                    SavePlayerPrefs("Wallpapers");
-                }
-            }
+            Type = 2;
         }
 
-        HackeroniText.GetComponent<TextMeshProUGUI>().text = Hackeronis + " Hackeronis";
+        foreach (SpriteStatus Item in SpriteStatusLists[Type])
+        {
+            if(Item.Name == ButtonCode.Split('=')[1])
+            {
+                if (Item.Status == "Available")
+                {
+                    CurrentEquipment[Type].Status = "Available";
+                    CurrentEquipment[Type] = Item;
+                    Item.Status = "Equipped";
+                    PlayerPrefs.SetString("Current" + ListName[Type], ListName[Type] + "/" + Item.Name + "-" + Item.Cost);
+                }
+                else if (Item.Status == "Unavailable" && Hackeronis >= Item.Cost)
+                {
+                    CurrentEquipment[Type].Status = "Available";
+                    CurrentEquipment[Type] = Item;
+                    Item.Status = "Equipped";
+                    PlayerPrefs.SetString("Current" + ListName[Type], ListName[Type] + "/" + Item.Name + "-" + Item.Cost);
+
+                    SpendMoney(Item.Cost);
+                }
+
+                SavePlayerPrefs(Type);
+                DisplayCurrentEquipment();
+            }
+        }
+        DisplayShopItems(Type);
     }
 
-    void SavePlayerPrefs(string Type)
+    void EquipColor(string ButtonCode)
     {
-        List<SpriteStatus> SpriteStatusList = new List<SpriteStatus>();
+        foreach (ColorStatus ColorStatus in ColorList)
+        {
+            if (ColorStatus.Name == ButtonCode.Split('=')[1])
+            {
+                if (ColorStatus.Status == "Available")
+                {
+                    CurrentColor.Status = "Available";
+                    CurrentColor = ColorStatus;
+                    ColorStatus.Status = "Equipped";
+                    PlayerPrefs.SetString("CurrentColors", ColorStatus.Name);
+                }
+                else if (ColorStatus.Status == "Unavailable" && Hackeronis >= ColorStatus.Cost)
+                {
+                    CurrentColor.Status = "Available";
+                    CurrentColor = ColorStatus;
+                    ColorStatus.Status = "Equipped";
+                    PlayerPrefs.SetString("CurrentColors", ColorStatus.Name);
 
-        if (Type == "Hats")
-        {
-            SpriteStatusList = HatList;
+                    SpendMoney(ColorStatus.Cost);
+                }
+
+                SaveColorPlayerPrefs();
+                DisplayCurrentEquipment();
+            }
         }
-        else if (Type == "Skins")
-        {
-            SpriteStatusList = SkinList;
-        }
-        else if (Type == "Wallpapers")
-        {
-            SpriteStatusList = WallpaperList;
-        }
+        DisplayColorItems();
+    }
+
+    void SpendMoney(int Amount)
+    {
+        PreviousHackeronis = Hackeronis;
+        Hackeronis -= Amount;
+        HackeronisAnimationTimer = 1f;
+
+        PlayerPrefs.SetInt("Hackeronis", Hackeronis);
+    }
+
+    void SavePlayerPrefs(int Type)
+    {
+        List<SpriteStatus> SpriteStatusList = SpriteStatusLists[Type];
 
         string NewPlayerPrefString = "";
 
@@ -518,7 +487,23 @@ public class ShopEngineScript : MonoBehaviour
             NewPlayerPrefString += SpriteStatus.Status + ",";
         }
 
-        PlayerPrefs.SetString(Type, NewPlayerPrefString);
+        PlayerPrefs.SetString(ListName[Type], NewPlayerPrefString);
+
+        print("Save: " + NewPlayerPrefString);
+    }
+
+    void SaveColorPlayerPrefs()
+    {
+        string NewPlayerPrefString = "";
+
+        foreach (ColorStatus ColorStatus in ColorList)
+        {
+            NewPlayerPrefString += ColorStatus.Name + "-";
+            NewPlayerPrefString += ColorStatus.Cost + "=";
+            NewPlayerPrefString += ColorStatus.Status + ",";
+        }
+
+        PlayerPrefs.SetString("Colors", NewPlayerPrefString);
 
         print("Save: " + NewPlayerPrefString);
     }
@@ -531,7 +516,54 @@ public class ShopEngineScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (HackeronisAnimationTimer != 0)
+        {
+            HackeronisAnimation();
+        }
+
+        if(Input.GetKeyDown("r"))
+        {
+            ResetPlayerPrefs();
+        }
+    }
+
+    void ResetPlayerPrefs()
+    {
+        for(int i = 0; i < SpriteStatusLists.Length; i++)
+        {
+            foreach(SpriteStatus SpriteStatus in SpriteStatusLists[i])
+            {
+                SpriteStatus.Status = "Unavailable";
+            }
+
+            SavePlayerPrefs(i);
+        }
+
+        foreach (ColorStatus ColorStatus in ColorList)
+        {
+            ColorStatus.Status = "Unavailable";
+        }
+
+        SaveColorPlayerPrefs();
+
+        Hackeronis = 9000;
+        PlayerPrefs.SetInt("Hackeronis", Hackeronis);
+        DisplayCurrentEquipment();
+    }
+
+    void HackeronisAnimation()
+    {
+        HackeronisAnimationTimer -= Time.deltaTime * 2f;
+
+        if(HackeronisAnimationTimer > 0)
+        {
+            HackeroniText.GetComponent<TextMeshProUGUI>().text = Mathf.RoundToInt(Hackeronis + ((float)(PreviousHackeronis - Hackeronis) * HackeronisAnimationTimer)) + " Hackeronis";
+        }
+        else
+        {
+            HackeroniText.GetComponent<TextMeshProUGUI>().text = Hackeronis + " Hackeronis";
+            HackeronisAnimationTimer = 0;
+        }
     }
 }
 
