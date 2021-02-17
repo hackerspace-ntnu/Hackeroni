@@ -12,6 +12,8 @@ public class ButtonScript : MonoBehaviour
     private bool Complete;
     private int[] Coordinates = new int[2];
 
+    public bool IsPastaBomb { get; set; } = false;
+
     public void setMatch(GameObject Match)
     {
         this.Match = Match;
@@ -51,7 +53,7 @@ public class ButtonScript : MonoBehaviour
             float Percentage = ((float)Coordinates[0] + (float)Coordinates[1]) / 8f;
             //print(Percentage);
             GetComponent<Image>().color = GameObject.Find("Engine").GetComponent<Engine>().ColorCalculator(Percentage, 0, 1, 255);
-            transform.GetChild(0).gameObject.SetActive(!Complete);
+            transform.GetChild(0).gameObject.SetActive(false);
             GetComponent<Button>().enabled = false;
         }
     }
@@ -84,7 +86,7 @@ public class ButtonScript : MonoBehaviour
 
     public void Reveal(bool Reveal)
     {
-        transform.GetChild(1).gameObject.SetActive(!Reveal);
+        transform.GetChild(1).GetComponent<Image>().enabled = !Reveal;
         setRevealed(Reveal);
     }
 

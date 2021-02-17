@@ -45,6 +45,17 @@ namespace Assets.Scripts
             if (loadSceneRegister != null)
             {
                 sceneParams = loadSceneRegister;
+                
+                var musicObject = GameObject.Find("Music");
+                if (musicObject != null)
+                {
+                    var audioSource = musicObject.GetComponent<AudioSource>();
+                    
+                    if (audioSource != null)
+                    {
+                        audioSource.time = sceneParams.musicTimestamp;
+                    }
+                }
             }
             loadSceneRegister = null; // the register has served its purpose, clear the state
         }
@@ -64,12 +75,37 @@ namespace Assets.Scripts
                 sceneParams.callbackWhenMinigameSceneFinishedUnloading = null; // Protect against double calling;
             };
         }
+        
+        public void RestartScene()
+        {
+            if (sceneParams == null)
+                return;
+
+            loadSceneRegister = sceneParams;
+
+            var musicObject = GameObject.Find("Music");
+            if (musicObject != null)
+            {
+                var audioSource = musicObject.GetComponent<AudioSource>();
+                if (audioSource != null)
+                {
+                    sceneParams.musicTimestamp = audioSource.time;
+                }
+            }
+            
+            var loadOp = SceneManager.UnloadSceneAsync(sceneParams.sceneName);
+
+            loadOp.completed += (o) => {
+                SceneManager.LoadSceneAsync(sceneParams.sceneName, LoadSceneMode.Additive);
+            };
+        }
 
         [System.Serializable]
         private class Params
         {
             public System.Action<Outcome> callbackWhenMinigameSceneFinishedUnloading;
             public string sceneName;
+            public float musicTimestamp = 0;
         }
         [System.Serializable]
         public class Outcome

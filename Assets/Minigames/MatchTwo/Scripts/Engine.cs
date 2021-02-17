@@ -34,11 +34,12 @@ public class Engine : MonoBehaviour
     private int Fails;
     private Vector2 Direction;
 
+    private bool ButtonsEnabled = false;
+
     // Start is called before the first frame update
     void Start()
     {
         
-        EndScreen.GetComponentInChildren<Button>().onClick.AddListener(ReturnFromMinigame);
         EndScreen.SetActive(false);
         Initiate.GetComponent<Button>().onClick.AddListener(InitiateOnClick);
 
@@ -56,6 +57,7 @@ public class Engine : MonoBehaviour
         RevealSpace = 1f;
 
         GameObject CenterButton = null;
+        
         for (int i = 0; i < 25; i++)
         {
             GameObject ButtonPref = Instantiate(ButtonPrefab);
@@ -63,7 +65,6 @@ public class Engine : MonoBehaviour
             ButtonPref.GetComponent<RectTransform>().localScale = new Vector3(1, 1, 1);
             ButtonPref.GetComponent<RectTransform>().anchoredPosition = new Vector2(((i % 5) * 120) + 80, -(Mathf.FloorToInt(i / 5) * 120) - 80);
             ButtonPref.GetComponent<ButtonScript>().setCoordinates(i % 5, (4 - Mathf.FloorToInt(i / 5)));
-
             Buttons.Add(ButtonPref);
 
             if(i == 12)
@@ -74,7 +75,7 @@ public class Engine : MonoBehaviour
 
         List<GameObject> MatchingList = new List<GameObject>(Buttons);
         int MatchNum = 1;
-        
+
         while(MatchingList.Count > 0)
         {
             GameObject Match1 = MatchingList[Random.Range(0, MatchingList.Count)];
@@ -102,8 +103,10 @@ public class Engine : MonoBehaviour
             }
             else
             {
-                Buttons.Remove(Match1);
-                Destroy(Match1);
+                //Instant kill button (pasta bomb)
+                Match1.transform.GetChild(0).GetComponent<Image>().sprite = Resources.Load<Sprite>("Minigames/Common/macaroni");
+                Match1.GetComponent<ButtonScript>().IsPastaBomb = true;
+                Match1.GetComponent<Image>().color = new Color(1,1,1,0);
             }
         }
 
@@ -166,6 +169,11 @@ public class Engine : MonoBehaviour
 
         foreach (GameObject Button in Buttons)
         {
+            if(Button.GetComponent<ButtonScript>().IsPastaBomb)
+            {
+                Button.transform.GetChild(0).GetComponent<Image>().color = new Color(1,1,1,1);
+                continue;
+            }
             Button.transform.GetChild(0).GetComponent<Image>().color = ColorCalculator((float)Button.GetComponent<ButtonScript>().getMatchNumber()/12f, Button.GetComponent<ButtonScript>().getMatchNumber() % 2, 2, 255);
         }
 
@@ -236,6 +244,16 @@ public class Engine : MonoBehaviour
 
     public void OnClick(GameObject Button)
     {
+        if (ButtonsEnabled == false)
+        {
+            return;
+        }
+        if (Button.GetComponent<ButtonScript>().IsPastaBomb) {
+            //Is macaroni kill button
+            ButtonsEnabled = false;
+            StartCoroutine(StartGameOverSequence()); 
+            return;
+        }
         if(Guess1 == null)
         {
             Guess1 = Button;
@@ -253,11 +271,11 @@ public class Engine : MonoBehaviour
 
                 Guess1.GetComponent<ButtonScript>().setComplete(true);
                 Guess2.GetComponent<ButtonScript>().setComplete(true);
-
-                CheckCompletion();
-
+                
                 Guess1 = null;
                 Guess2 = null;
+
+                CheckCompletion();
             }
             else
             {
@@ -280,20 +298,13 @@ public class Engine : MonoBehaviour
 
             RevealTime = 1f + RevealSpace;
 
-            Guess1 = null;
-            Guess2 = null;
-
             EnableButtons(false);
         }
     }
 
     void EnableButtons(bool Bool)
     {
-        foreach(GameObject Button in Buttons)
-        {
-            if(Button.GetComponent<ButtonScript>().getComplete() == false)
-                Button.GetComponent<Button>().enabled = Bool;
-        }
+        ButtonsEnabled = Bool;
     }
 
     void RevealBoardAnimation()
@@ -309,13 +320,13 @@ public class Engine : MonoBehaviour
                 {
                     Buttons[i].GetComponent<ButtonScript>().Reveal(true);
                 }
-                else if(Buttons[i].GetComponent<ButtonScript>().getComplete() == false)
+                else if(Buttons[i].GetComponent<ButtonScript>().getComplete() == false && Buttons[i] != Guess1 && Buttons[i] != Guess2)
                 {
                     Buttons[i].GetComponent<ButtonScript>().Reveal(false);
-                }
-                else if(Buttons[i].GetComponent<ButtonScript>().getComplete() == true)
+                } 
+                else
                 {
-                    Buttons[i].SetActive(false);
+                    Buttons[i].GetComponent<ButtonScript>().Reveal(true);
                 }
             }
         }
@@ -323,13 +334,14 @@ public class Engine : MonoBehaviour
         {
             RevealTime = -RevealSpace;
 
+            Guess1 = null;
+            Guess2 = null;
             EnableButtons(true);
 
             for (int i = 0; i < Buttons.Count; i++)
             {
                 if(Buttons[i].GetComponent<ButtonScript>().getComplete() == false)
                     Buttons[i].GetComponent<ButtonScript>().Reveal(false);
-                Buttons[i].SetActive(true);
             }
         }
     }
@@ -340,9 +352,11 @@ public class Engine : MonoBehaviour
 
         foreach(GameObject Button in Buttons)
         {
-            if(Button.GetComponent<ButtonScript>().getComplete() == false)
+            var bscript = Button.GetComponent<ButtonScript>();
+            if(bscript.getComplete() == false && bscript.IsPastaBomb == false)
             {
                 Completed = false;
+                break;
             }
         }
 
@@ -351,6 +365,8 @@ public class Engine : MonoBehaviour
             foreach (GameObject Button in Buttons)
             {
                 Button.GetComponent<RectTransform>().sizeDelta = new Vector2(120, 120);
+                Button.GetComponent<ButtonScript>().setComplete(true);
+                Button.GetComponent<ButtonScript>().Reveal(true);
             }
 
             EndScreen.SetActive(true);
@@ -358,11 +374,34 @@ public class Engine : MonoBehaviour
             EndScreen.transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = "Fails: " + Fails.ToString();
         }
     }
+    
+    IEnumerator StartGameOverSequence()
+    {
+        foreach (GameObject Button in Buttons)
+        {
+            Button.GetComponent<RectTransform>().sizeDelta = new Vector2(120, 120);
+            var bscript = Button.GetComponent<ButtonScript>();
+            bscript.setComplete( !bscript.IsPastaBomb );
+            bscript.Reveal(true);
+        }
+        yield return new WaitForSeconds(1);
+        
+        
+        EndScreen.SetActive(true);
+        EndScreen.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "Game Over"; 
+        EndScreen.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = ""; 
+        EndScreen.transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = "(don't touch the pasta)";
+    }
 
-    private void ReturnFromMinigame()
+    public void ReturnFromMinigame()
     {
         //Debug.Log("Exiting");
         GetComponent<MinigameScene>().EndScene(new MinigameScene.Outcome() { highscore = GetScore() });
+    }
+
+    public void RestartMinigame()
+    {
+        GetComponent<MinigameScene>().RestartScene();
     }
 
     public int GetScore()
@@ -409,11 +448,11 @@ public class Engine : MonoBehaviour
         else if(StartGameTimer > 0)
         {
             StartGameTimer -= Time.deltaTime;
-        }
-        else if(StartGameTimer < 0)
-        {
-            StartGameTimer = 0;
-            EnableButtons(true);
+            if(StartGameTimer <= 0)
+            {
+                StartGameTimer = 0;
+                EnableButtons(true);
+            }
         }
     }
 }
