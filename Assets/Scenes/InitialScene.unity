@@ -1392,8 +1392,28 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5191444278533295886, guid: b3044c4e3a9729543b648c22a11c0ed4, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5191444278533295886, guid: b3044c4e3a9729543b648c22a11c0ed4, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1418259587}
+    - target: {fileID: 5191444278533295886, guid: b3044c4e3a9729543b648c22a11c0ed4, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
-      value: 0
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5191444278533295886, guid: b3044c4e3a9729543b648c22a11c0ed4, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: YeetToSceneWithName
+      objectReference: {fileID: 0}
+    - target: {fileID: 5191444278533295886, guid: b3044c4e3a9729543b648c22a11c0ed4, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: YeetToAnotherScene, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 5191444278533295886, guid: b3044c4e3a9729543b648c22a11c0ed4, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
+      value: Shop
       objectReference: {fileID: 0}
     - target: {fileID: 5191444278533295887, guid: b3044c4e3a9729543b648c22a11c0ed4, type: 3}
       propertyPath: m_Color.b
@@ -1418,6 +1438,23 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5191444278533294321, guid: b3044c4e3a9729543b648c22a11c0ed4, type: 3}
   m_PrefabInstance: {fileID: 1418259584}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1418259586 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5191444278533294320, guid: b3044c4e3a9729543b648c22a11c0ed4, type: 3}
+  m_PrefabInstance: {fileID: 1418259584}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1418259587
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1418259586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48d7b50f6e1cced4e8b97dd70a143fe3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1880630032
 GameObject:
   m_ObjectHideFlags: 0

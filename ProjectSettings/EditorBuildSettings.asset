@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/InitialScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729
   - enabled: 1
+    path: Assets/Scenes/Shop.unity
+    guid: 2ba32934d8897a2469570fd751a75d39
+  - enabled: 1
     path: Assets/Scenes/MatchTwo.unity
     guid: 89978a73e76dba04ba5652661c014dfb
   - enabled: 1
