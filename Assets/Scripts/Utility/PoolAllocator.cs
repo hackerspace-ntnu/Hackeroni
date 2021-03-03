@@ -35,11 +35,15 @@ public class PoolAllocator<T> where T : new()
         return obj;
     }
 
-    public void DisableInstance(int index)
+    public void DisableInstance(int index) // Veldig vanskeleg å handtera om ting blir destroyed ut of order? Sjekk.
     {
-        if (index < 0 || active_object_count <= 0 || index >= gameObjects.Count)
+        if (index < 0 || active_object_count <= 0 || index >= gameObjects.Count || gameObjects[index].activeSelf == false)
         {
             Debug.LogWarning("This should not happen!!!!");
+            Debug.Log("Index: " + index);
+            Debug.Log("Aktive objekt: " + active_object_count);
+            Debug.Log("Antal game objects: " + gameObjects.Count);
+            Debug.Log("Er objektet aktivt? " + gameObjects[index].activeSelf);
             return;
         }
         active_object_count--;
@@ -50,6 +54,11 @@ public class PoolAllocator<T> where T : new()
         gameObjects[index] = obj;
         metadata[index] = data;
     }
+    public void DisableInstance(GameObject obj)
+    {
+        DisableInstance(gameObjects.IndexOf(obj));
+    }
+
 
     public void Destroy()
     {

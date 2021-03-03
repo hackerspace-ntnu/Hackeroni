@@ -3,7 +3,14 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Enemy
+  - Powerup
+  - Powerup0
+  - Powerup1
+  - Powerup2
+  - Powerup3
+  - Powerup4
   layers:
   - Default
   - TransparentFX
@@ -13,11 +20,11 @@ TagManager:
   - UI
   - 
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Enemy
+  - Player
+  - Wall
+  - Powerups
+  - Damager
   - 
   - 
   - 
