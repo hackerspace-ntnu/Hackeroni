@@ -11,6 +11,15 @@ TagManager:
   - Powerup2
   - Powerup3
   - Powerup4
+  - Macaroni
+  - Failure
+  - Macaroni_green
+  - Macaroni_red
+  - Power_BIG
+  - Power_SPEED
+  - Power_macBURST
+  - Macaroni_gold
+  - Life
   layers:
   - Default
   - TransparentFX
