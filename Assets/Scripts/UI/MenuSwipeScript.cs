@@ -6,6 +6,9 @@ using UnityEngine.EventSystems;
 public class MenuSwipeScript : MonoBehaviour, IEndDragHandler, IBeginDragHandler
 {
     // Start is called before the first frame update
+    public GameObject LeftButton;
+    public GameObject RightButton;
+    
     private ScrollRect scrollRect;
     private RectTransform rect;
     private int currentIndex = 0;
@@ -17,6 +20,7 @@ public class MenuSwipeScript : MonoBehaviour, IEndDragHandler, IBeginDragHandler
     {
         scrollRect = GetComponent<ScrollRect>();
         rect = GetComponent<RectTransform>();
+        Swipe(1);
     }
 
     // Update is called once per frame
@@ -29,7 +33,7 @@ public class MenuSwipeScript : MonoBehaviour, IEndDragHandler, IBeginDragHandler
 
             if (previousScrollingSign == 0 || currentScrollingSign == previousScrollingSign) {
                 var dist = Mathf.Abs(desiredPos - currentPos);
-                scrollRect.horizontalNormalizedPosition += (desiredPos - currentPos) * Time.deltaTime * Mathf.Pow(dist, -0.6f) *2;
+                scrollRect.horizontalNormalizedPosition += (desiredPos - currentPos) * Time.deltaTime * Mathf.Pow(dist, -0.5f) *2;
                 previousScrollingSign = currentScrollingSign; 
             } else {
                 scrollRect.horizontalNormalizedPosition = desiredPos;
@@ -61,17 +65,46 @@ public class MenuSwipeScript : MonoBehaviour, IEndDragHandler, IBeginDragHandler
     }
 
     public void OnEndDrag(PointerEventData data) {
-        if (data.position.x - data.pressPosition.x > 0) {
+        Swipe((data.position.x - data.pressPosition.x) / 700f);
+    }
+
+    public void OnBeginDrag(PointerEventData data) {
+        isDragging = true;
+        previousScrollingSign = 0;
+    }
+
+    public void Swipe(float direction)
+    {
+        if (Mathf.Abs(direction) < 0.25f)
+        {
+            isDragging = false;
+            return;
+        }
+
+        if (direction > 0) {
             currentIndex--;
         } else {
             currentIndex++;
         }
         currentIndex = Mathf.Clamp(currentIndex, 0, childCount-1);
-        isDragging = false;
-    }
 
-    public void OnBeginDrag(PointerEventData data) {
-        isDragging = true;
+        if (currentIndex == 0)
+        {
+            LeftButton.SetActive(false);
+            RightButton.SetActive(true);
+        }
+        else if (currentIndex == childCount - 1)
+        {
+            LeftButton.SetActive(true);
+            RightButton.SetActive(false);
+        }
+        else 
+        {
+            LeftButton.SetActive(true);
+            RightButton.SetActive(true);
+        }
+
+        isDragging = false;
         previousScrollingSign = 0;
     }
 }

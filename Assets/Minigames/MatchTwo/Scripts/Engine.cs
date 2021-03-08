@@ -104,7 +104,9 @@ public class Engine : MonoBehaviour
             else
             {
                 //Instant kill button (pasta bomb)
-                Match1.transform.GetChild(0).GetComponent<Image>().sprite = Resources.Load<Sprite>("Minigames/Common/macaroni");
+                var pastaSprite = Match1.transform.GetChild(0).GetComponent<Image>();
+                pastaSprite.sprite = PlayerPrefManager.GetCurrentSkinSprite();
+                pastaSprite.color = PlayerPrefManager.GetCurrentColor();
                 Match1.GetComponent<ButtonScript>().IsPastaBomb = true;
                 Match1.GetComponent<Image>().color = new Color(1,1,1,0);
             }
@@ -171,7 +173,6 @@ public class Engine : MonoBehaviour
         {
             if(Button.GetComponent<ButtonScript>().IsPastaBomb)
             {
-                Button.transform.GetChild(0).GetComponent<Image>().color = new Color(1,1,1,1);
                 continue;
             }
             Button.transform.GetChild(0).GetComponent<Image>().color = ColorCalculator((float)Button.GetComponent<ButtonScript>().getMatchNumber()/12f, Button.GetComponent<ButtonScript>().getMatchNumber() % 2, 2, 255);
@@ -372,6 +373,13 @@ public class Engine : MonoBehaviour
             EndScreen.SetActive(true);
             EndScreen.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = GetScore().ToString();
             EndScreen.transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = "Fails: " + Fails.ToString();
+            
+            var result = PlayerPrefManager.GetAndOrUpdateHighscore("MatchTwo", GetScore());
+            EndScreen.transform.GetChild(3).GetComponent<TextMeshProUGUI>().text = result.Item1 ? "New highscore!" : ("Highscore: " + result.Item2); 
+            
+            var hackeronis = 10 + 19 * Mathf.Max(10 - Fails, 0);
+            PlayerPrefManager.AddEarnedHackeronis(hackeronis);
+            EndScreen.transform.GetChild(4).GetComponent<TextMeshProUGUI>().text = "Hackeronis: " + hackeronis; 
         }
     }
     
@@ -384,19 +392,21 @@ public class Engine : MonoBehaviour
             bscript.setComplete( !bscript.IsPastaBomb );
             bscript.Reveal(true);
         }
-        yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(0.8f);
         
         
         EndScreen.SetActive(true);
         EndScreen.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "Game Over"; 
         EndScreen.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = ""; 
         EndScreen.transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = "(don't touch the pasta)";
+        EndScreen.transform.GetChild(3).GetComponent<TextMeshProUGUI>().text = ""; 
+        EndScreen.transform.GetChild(4).GetComponent<TextMeshProUGUI>().text = ""; 
     }
 
     public void ReturnFromMinigame()
     {
         //Debug.Log("Exiting");
-        GetComponent<MinigameScene>().EndScene(new MinigameScene.Outcome() { highscore = GetScore() });
+        GetComponent<MinigameScene>().EndScene();
     }
 
     public void RestartMinigame()

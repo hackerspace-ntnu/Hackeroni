@@ -7,24 +7,23 @@ using TMPro;
 
 public class SimpleBootstrap : MonoBehaviour
 {
-    public TMP_Text textObject;
+    public TMP_Text hackeroniText;
 
     private bool gameLaunched = false;
     private int launchedGameId = 0;
+    
+    private int hackeronisBeforeMinigameIsLaunched = 0;
+
     void Start()
     {
+        hackeroniText.text = PlayerPrefs.GetInt("Hackeronis", 0).ToString();
     }
 
-    void OnSceneEnd(MinigameScene.Outcome outcome)
+    void OnSceneEnd()
     {
         gameLaunched = false;
-        var key = "highscore"+launchedGameId;
-        int prevHighScore = PlayerPrefs.GetInt(key, 0);
-        PlayerPrefs.SetInt(key, Mathf.Max(outcome.highscore, prevHighScore));
-        if (outcome.highscore > prevHighScore)
-        {
-            Debug.LogFormat("You got a new highscore: {0}", outcome.highscore);
-        }
+        Screen.orientation = ScreenOrientation.Portrait;
+        StartCoroutine(HackeroniEarnedAnimation());
     }
 
     // Update is called once per frame
@@ -34,6 +33,7 @@ public class SimpleBootstrap : MonoBehaviour
         {
             gameLaunched = true;
             launchedGameId = buttonIndex;
+            hackeronisBeforeMinigameIsLaunched = PlayerPrefs.GetInt("Hackeronis", 0);
 
             switch (buttonIndex)
             {
@@ -46,10 +46,10 @@ public class SimpleBootstrap : MonoBehaviour
                 case 2:
                     MinigameScene.LoadMinigameScene("TrickyTrumpTest", OnSceneEnd); 
                     break;
-                // TODO Add new games here as they are made
                 case 3:
-                    // MinigameScene.LoadMinigameScene("Rythmic_fisk", OnSceneEnd); 
+                    MinigameScene.LoadMinigameScene("TiltyHacker", OnSceneEnd); 
                     break;
+                // TODO Add new games here as they are made
                 case 4:
                     // MinigameScene.LoadMinigameScene("MatchTwo", OnSceneEnd); 
                     break;
@@ -62,5 +62,31 @@ public class SimpleBootstrap : MonoBehaviour
                     break;
             }           
         }
+    }
+    
+    public IEnumerator HackeroniEarnedAnimation()
+    {
+        var previousHackeronis = hackeronisBeforeMinigameIsLaunched;
+        var currentHackeronis = PlayerPrefs.GetInt("Hackeronis", 0);
+
+        if(previousHackeronis >= currentHackeronis) {
+            //Special case maybe?
+            hackeroniText.text = currentHackeronis.ToString(); 
+            yield break;
+        }
+
+        float animationTime = 1.5f;
+        float timer = 0;
+
+        while(timer <= animationTime)
+        {
+            int intermediateValue = Mathf.RoundToInt((currentHackeronis - previousHackeronis) * timer / animationTime + previousHackeronis);
+            hackeroniText.text = intermediateValue.ToString(); 
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        hackeroniText.text = currentHackeronis.ToString(); 
+        hackeronisBeforeMinigameIsLaunched = previousHackeronis;
     }
 }

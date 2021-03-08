@@ -23,6 +23,7 @@ public class DTTTEngine : MonoBehaviour
     public Button RealButton;
     public Button FakeButton;
     public Button NextButton;
+    public GameObject EndGameScreenCanvas;
 
     public float MinNumberSecondsToAnswer = 5;
     public float MaxNumberSecondsToAnswer = 20;
@@ -55,6 +56,7 @@ public class DTTTEngine : MonoBehaviour
             Timer.size = time;
             if (time < 0)
             {
+                IncorrectText.text = "Time's up";
                 AnswerCompleted(false);
             }
 
@@ -123,11 +125,13 @@ public class DTTTEngine : MonoBehaviour
 
     void RealButtonOnClick()
     {
+        IncorrectText.text = "Incorrect";
         AnswerCompleted(TweetIsReal == true);
     }
 
     void FakeButtonOnClick()
     {
+        IncorrectText.text = "Incorrect";
         AnswerCompleted(TweetIsReal == false);
     }
 
@@ -143,13 +147,13 @@ public class DTTTEngine : MonoBehaviour
 
             var fadeTime = 0.7f;
             if (WrongAmount == 1) {
-                StartCoroutine(FadeOutCoroutine(Heart1, fadeTime));
+                StartCoroutine(FadeCoroutine(Heart1, 1, 0, fadeTime));
             }
             if (WrongAmount == 2) {
-                StartCoroutine(FadeOutCoroutine(Heart2, fadeTime));
+                StartCoroutine(FadeCoroutine(Heart2, 1, 0, fadeTime));
             }
             if (WrongAmount == 3) {
-                StartCoroutine(FadeOutCoroutine(Heart3, fadeTime));
+                StartCoroutine(FadeCoroutine(Heart3, 1, 0, fadeTime));
             }
         }
 
@@ -171,7 +175,7 @@ public class DTTTEngine : MonoBehaviour
 
         if (WrongAmount >= 3) {
             //Game over
-            StartCoroutine(ReturnToMainMenuCoroutine());
+            StartCoroutine(GameOverCoroutine());
         }
 
         isPaused = true;
@@ -179,16 +183,50 @@ public class DTTTEngine : MonoBehaviour
     
     public void ReturnToMainMenu()
     {
-        GetComponent<Assets.Scripts.MinigameScene>().EndScene(new Assets.Scripts.MinigameScene.Outcome(){ highscore = RightAmount});
+        GetComponent<Assets.Scripts.MinigameScene>().EndScene();
     }
     
-    public IEnumerator ReturnToMainMenuCoroutine()
+    public IEnumerator GameOverCoroutine()
     {
-        yield return new WaitForSeconds(1.5f);
-        ReturnToMainMenu();
+        NextButton.gameObject.SetActive(false);
+        EndGameScreenCanvas.SetActive(true);
+
+        var result = PlayerPrefManager.GetAndOrUpdateHighscore("TrickyTrumpTest", RightAmount);
+        
+        var adjustedValue = Mathf.Max(RightAmount-2, 0);
+        var hackeronisEarned = adjustedValue * adjustedValue + (result.Item1 ? 10 : 0);
+        PlayerPrefManager.AddEarnedHackeronis(hackeronisEarned);
+
+
+        EndGameScreenCanvas.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text 
+                = string.Format("{0}\n\n{1}\n\n{2}", RightAmount, result.Item2, hackeronisEarned);
+
+        EndGameScreenCanvas.transform.GetChild(2).GetComponent<TextMeshProUGUI>().text 
+                = string.Format("Score\n\nHighscore {0}\n\nHackeronis", result.Item1 ? "(NEW!)" : "");
+
+        var buttons = EndGameScreenCanvas.GetComponentsInChildren<Button>();
+        foreach(var button in buttons)
+        {
+            button.interactable = false;
+        }
+
+
+        var canvasGroup = EndGameScreenCanvas.GetComponent<CanvasGroup>(); 
+        const float fade_time = 0.5f;
+        var tick = 0f;
+        while (tick <= fade_time)
+        {
+            tick += Time.deltaTime;
+            canvasGroup.alpha = Mathf.Lerp(0, 1, Mathf.Pow(tick/fade_time, 1.5f));
+            yield return null;
+        }
+        foreach(var button in buttons)
+        {
+            button.interactable = true;
+        }
     }
 
-    public IEnumerator FadeOutCoroutine(Image img, float fade_time)
+    public IEnumerator FadeCoroutine(Image img, float startAlpha, float endAlpha, float fade_time)
     {
         var tick = 0f;
         while (tick <= fade_time)
@@ -196,7 +234,7 @@ public class DTTTEngine : MonoBehaviour
             tick += Time.deltaTime;
 
             var color = img.color;
-            color.a = Mathf.Lerp(1, 0, Mathf.Pow(tick/fade_time, 1.4f));
+            color.a = Mathf.Lerp(startAlpha, endAlpha, Mathf.Pow(tick/fade_time, 1.4f));
             img.color = color;
             yield return null;
         }

@@ -20,4 +20,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TrickyTrumpTest.unity
     guid: 144c93c0f09bf4944a1059665bfbd2bf
+  - enabled: 1
+    path: Assets/Scenes/TiltyHacker.unity
+    guid: e4810199d3b8dcb549815e9f13035817
   m_configObjects: {}

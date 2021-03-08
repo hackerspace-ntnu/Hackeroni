@@ -20,6 +20,7 @@ public class BeatEngine : MonoBehaviour
     public Canvas endScreenCanvas;
     public TextMeshProUGUI gameoverText;
     public TextMeshProUGUI congratulationsText;
+    public TextMeshProUGUI statisticsText;
     public float macaroniTravelDuration = 2f; 
     public float clickMargin = 0.05f;
     public float destroyTime = 0;
@@ -238,6 +239,13 @@ public class BeatEngine : MonoBehaviour
         endScreenCanvas.enabled = true;
         gameoverText.enabled = false;
         congratulationsText.enabled = true;
+        statisticsText.transform.parent.gameObject.SetActive(true);
+        statisticsText.enabled = true;
+        var result = PlayerPrefManager.GetAndOrUpdateHighscore("BeatPasta", score);
+        var hackeronis = Mathf.RoundToInt(score/10);
+        PlayerPrefManager.AddEarnedHackeronis(hackeronis);
+
+        statisticsText.text = string.Format("{0}\n{1} {2}\n{3}", score, result.Item1 ? "(NEW!)" : null, result.Item2, hackeronis);
     }
 
     private void CheckClick(Vector2 position)
@@ -278,6 +286,7 @@ public class BeatEngine : MonoBehaviour
            endScreenCanvas.enabled = true;
            gameoverText.enabled = true;
            congratulationsText.enabled = false;
+           statisticsText.transform.parent.gameObject.SetActive(false);
            musicSource.Stop();
        }
        ResetCombo();
@@ -323,7 +332,7 @@ public class BeatEngine : MonoBehaviour
     {
         macaroniPool.Destroy();
         successEffectPool.Destroy();
-        GetComponent<MinigameScene>().EndScene(new MinigameScene.Outcome() {highscore = score});
+        GetComponent<MinigameScene>().EndScene();
     }
 }
 public struct MacaroniData

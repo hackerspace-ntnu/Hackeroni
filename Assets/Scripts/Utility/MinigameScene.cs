@@ -13,20 +13,20 @@ namespace Assets.Scripts
         [NonSerialized]
         private Params sceneParams;
 
-        public static void LoadMinigameScene(string sceneName, System.Action<Outcome> callbackWhenMinigameSceneExits) 
+        public static void LoadMinigameScene(string sceneName, System.Action callbackWhenMinigameSceneExits) 
         {
             var rootObjects = SceneManager.GetActiveScene().GetRootGameObjects();
             MinigameScene.loadSceneRegister = new Params()
             {
                 sceneName = sceneName,
-                callbackWhenMinigameSceneFinishedUnloading = (outcome) => 
+                callbackWhenMinigameSceneFinishedUnloading = () => 
                     { 
                         foreach(var rootObject in rootObjects)
                         {
                             if (rootObject != null)
                                 rootObject.SetActive(true);
                         }
-                        callbackWhenMinigameSceneExits(outcome);
+                        callbackWhenMinigameSceneExits();
                     },
             };
             var loadOp = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
@@ -37,6 +37,7 @@ namespace Assets.Scripts
                     if (rootObject != null)
                         rootObject.SetActive(false);
                 }
+                SceneManager.SetActiveScene(SceneManager.GetSceneByName(sceneName));
             };
         }
 
@@ -60,7 +61,7 @@ namespace Assets.Scripts
             loadSceneRegister = null; // the register has served its purpose, clear the state
         }
 
-        public void EndScene (Outcome outcome) 
+        public void EndScene () 
         {
             if (sceneParams == null)
                 return;
@@ -70,7 +71,7 @@ namespace Assets.Scripts
             loadOp.completed += (o) => {
                 if (sceneParams.callbackWhenMinigameSceneFinishedUnloading != null) 
                 {
-                    sceneParams.callbackWhenMinigameSceneFinishedUnloading(outcome);
+                    sceneParams.callbackWhenMinigameSceneFinishedUnloading();
                 }
                 sceneParams.callbackWhenMinigameSceneFinishedUnloading = null; // Protect against double calling;
             };
@@ -103,14 +104,9 @@ namespace Assets.Scripts
         [System.Serializable]
         private class Params
         {
-            public System.Action<Outcome> callbackWhenMinigameSceneFinishedUnloading;
+            public System.Action callbackWhenMinigameSceneFinishedUnloading;
             public string sceneName;
             public float musicTimestamp = 0;
-        }
-        [System.Serializable]
-        public class Outcome
-        {
-            public int highscore;
         }
     }
 }

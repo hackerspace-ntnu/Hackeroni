@@ -276,7 +276,7 @@ public class Timer : MonoBehaviour //MonoBehavior betyr basicly at jeg kan gjør
 
     public void EndGame()
     {
-        GetComponent<MinigameScene>().EndScene(new MinigameScene.Outcome() {highscore = (int)Mathf.Round(score)});
+        GetComponent<MinigameScene>().EndScene();
     }
 }
 

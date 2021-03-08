@@ -18,7 +18,25 @@ public class ShopEngineScript : MonoBehaviour
 
     private int Hackeronis;
 
-    private List<ColorStatus> ColorList = new List<ColorStatus>();
+    public static ColorStatus[] ColorList = new ColorStatus[] 
+        {
+            new ColorStatus() { Name = "Default", Color = new Color32(255, 219, 102, 255)},
+            new ColorStatus() { Name = "Burnt", Color = new Color32(85, 82, 48, 255)},
+            new ColorStatus() { Name = "Wet", Color = new Color32(28, 39, 115, 255)},
+            new ColorStatus() { Name = "Rotten", Color = new Color32(47, 60, 41, 255)},
+            new ColorStatus() { Name = "Grayscale", Color = new Color32(113, 113, 113, 255)},
+            new ColorStatus() { Name = "Sweet", Color = new Color32(255, 181, 255, 255)},
+            new ColorStatus() { Name = "Sour", Color = new Color32(177, 255, 0, 255)},
+            new ColorStatus() { Name = "Frozen", Color = new Color32(201, 254, 255, 255)},
+            new ColorStatus() { Name = "Poisonous", Color = new Color32(125, 42, 114, 255)},
+            new ColorStatus() { Name = "Chili", Color = new Color32(200, 45, 40, 255)},
+            new ColorStatus() { Name = "Silver", Color = new Color32(199, 221, 220, 255)},
+            new ColorStatus() { Name = "Radioactive", Color = new Color32(62, 204, 68, 255)},
+            new ColorStatus() { Name = "Golden", Color = new Color32(255, 211, 0, 255)},
+            new ColorStatus() { Name = "Obsidian", Color = new Color32(50, 5, 63, 255)},
+            new ColorStatus() { Name = "Diamond", Color = new Color32(90, 231, 255, 255)},
+            new ColorStatus() { Name = "Black_Hole", Color = new Color32(0, 0, 0, 255)},
+        };
 
     List<SpriteStatus>[] SpriteStatusLists = new List<SpriteStatus>[3];
     string[] ListName = new string[] { "Hats", "Skins", "Wallpapers" };
@@ -183,31 +201,11 @@ public class ShopEngineScript : MonoBehaviour
 
     void LoadColorPlayerPrefs()
     {
-        ColorList = new List<ColorStatus>()
-        {
-            new ColorStatus() { Name = "Default", Color = new Color32(255, 219, 102, 255)},
-            new ColorStatus() { Name = "Burnt", Color = new Color32(85, 82, 48, 255)},
-            new ColorStatus() { Name = "Wet", Color = new Color32(28, 39, 115, 255)},
-            new ColorStatus() { Name = "Rotten", Color = new Color32(47, 60, 41, 255)},
-            new ColorStatus() { Name = "Grayscale", Color = new Color32(113, 113, 113, 255)},
-            new ColorStatus() { Name = "Sweet", Color = new Color32(255, 181, 255, 255)},
-            new ColorStatus() { Name = "Sour", Color = new Color32(177, 255, 0, 255)},
-            new ColorStatus() { Name = "Frozen", Color = new Color32(201, 254, 255, 255)},
-            new ColorStatus() { Name = "Poisonous", Color = new Color32(125, 42, 114, 255)},
-            new ColorStatus() { Name = "Chili", Color = new Color32(200, 45, 40, 255)},
-            new ColorStatus() { Name = "Silver", Color = new Color32(199, 221, 220, 255)},
-            new ColorStatus() { Name = "Radioactive", Color = new Color32(62, 204, 68, 255)},
-            new ColorStatus() { Name = "Golden", Color = new Color32(255, 211, 0, 255)},
-            new ColorStatus() { Name = "Obsidian", Color = new Color32(50, 5, 63, 255)},
-            new ColorStatus() { Name = "Diamond", Color = new Color32(90, 231, 255, 255)},
-            new ColorStatus() { Name = "Black_Hole", Color = new Color32(0, 0, 0, 255)},
-        };
-
         string PlayerPrefString = PlayerPrefs.GetString("Colors", "");
         string[] PlayerPrefArray = PlayerPrefString.Split(',');
         string NewPlayerPrefString = "";
 
-        for(int i = 0; i < ColorList.Count; i++)
+        for(int i = 0; i < ColorList.Length; i++)
         {
             ColorList[i].Cost = 120 * i;
 
