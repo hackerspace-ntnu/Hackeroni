@@ -78,8 +78,14 @@ public class GameTracker : MonoBehaviour
             score_text.gameObject.SetActive(false);
             life_text.gameObject.SetActive(false);
             final_score_txt.text = "Your score: " + score;
-            highscore_txt.text = "Highscore " + 0; //TODO finn ut hvordan å få tak i highscore
-            hackeronies_earned_txt.text = "Insert Hackaroni amount here"; 
+
+            var highscore = PlayerPrefManager.GetAndOrUpdateHighscore("Soup_falls", score).Item2;
+            highscore_txt.text = "Highscore: " + highscore; 
+            
+            var hackeronis = Mathf.RoundToInt(score/20f);
+            PlayerPrefManager.AddEarnedHackeronis(hackeronis);
+            hackeronies_earned_txt.text = hackeronis.ToString(); 
+            
             end_screen_canvas.SetActive(true);
             gameIsOn = false;
             lives = -1;

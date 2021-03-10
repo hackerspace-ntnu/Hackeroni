@@ -51,7 +51,7 @@ public class SimpleBootstrap : MonoBehaviour
                     break;
                 // TODO Add new games here as they are made
                 case 4:
-                    // MinigameScene.LoadMinigameScene("MatchTwo", OnSceneEnd); 
+                    MinigameScene.LoadMinigameScene("Soup_falls", OnSceneEnd); 
                     break;
                 case 5:
                     // MinigameScene.LoadMinigameScene("Rythmic_fisk", OnSceneEnd); 

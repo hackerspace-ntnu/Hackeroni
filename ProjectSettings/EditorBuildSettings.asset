@@ -23,4 +23,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TiltyHacker.unity
     guid: e4810199d3b8dcb549815e9f13035817
+  - enabled: 1
+    path: Assets/Scenes/Soup_falls.unity
+    guid: c54ea3bb2633b4ec9b4d46d68d7cb47e
   m_configObjects: {}
