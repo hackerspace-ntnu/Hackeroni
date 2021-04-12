@@ -527,7 +527,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 0.0000023986886, y: 242}
+  m_AnchoredPosition: {x: -0.015915144, y: 242}
   m_SizeDelta: {x: 300, y: 484}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &240442592
@@ -2020,8 +2020,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 204795372}
   m_HandleRect: {fileID: 204795371}
   m_Direction: 0
-  m_Value: 0
-  m_Size: 1
+  m_Value: 1
+  m_Size: 0.8402375
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -3260,6 +3260,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 870511524}
     m_Modifications:
+    - target: {fileID: 8566868937621801826, guid: c97fba05889fc9d4aaeff23d3ae19392, type: 3}
+      propertyPath: musicSource
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 8566868937621801830, guid: c97fba05889fc9d4aaeff23d3ae19392, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
