@@ -5,6 +5,8 @@ using UnityEngine;
 public class HitDetection : MonoBehaviour
 {
     public GameTracker gameTracker;
+    public AudioSource failSoundEffect;
+    public AudioSource successSoundEffect;
     private Vector3 smallBowl = new Vector3(2.5f,2.5f,1f);
     private Vector3 bigBowl = new Vector3(3.0f,3.0f,1f);
 
@@ -47,6 +49,8 @@ public class HitDetection : MonoBehaviour
     // Stuff that happens when you hit the falling stuffs
     private void OnTriggerEnter2D(Collider2D other)
     {
+        var soundEffect = successSoundEffect;
+
         if (other.tag == "Macaroni_green"){
             gameTracker.addPoints(50);
             Destroy(other.gameObject);
@@ -91,8 +95,10 @@ public class HitDetection : MonoBehaviour
             gameTracker.setColorChangeTime(0.5f);
             gameTracker.changeBackgroundColor(255,99,71);
             gameTracker.adjustLives(-1);
+            soundEffect = failSoundEffect;
             Destroy(other.gameObject);
             gameTracker.gamePopUpMessage("- 1 life", new Color32((byte) 255, (byte) 255, (byte) 255, 255));
         }
+        soundEffect.Play();
     }
 }

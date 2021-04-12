@@ -85,7 +85,9 @@ public class GameTracker : MonoBehaviour
             var hackeronis = Mathf.RoundToInt(score/20f);
             PlayerPrefManager.AddEarnedHackeronis(hackeronis);
             hackeronies_earned_txt.text = hackeronis.ToString(); 
-            
+
+            GameObject.Find("Music").GetComponent<AudioSource>().Stop();
+
             end_screen_canvas.SetActive(true);
             gameIsOn = false;
             lives = -1;
