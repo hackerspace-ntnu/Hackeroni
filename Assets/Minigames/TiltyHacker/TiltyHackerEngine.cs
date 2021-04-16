@@ -12,6 +12,7 @@ public class TiltyHackerEngine : MonoBehaviour
     public TextMeshProUGUI finalScoreTMP;
     public TextMeshProUGUI hackeronisTMP;
     public TextMeshProUGUI restartTMP;
+    public TextMeshProUGUI gyroTMP;
     public GameObject enemyPrefab;
     public GameObject powerupPrefab;
     public GameObject beamPrefab;
@@ -26,7 +27,12 @@ public class TiltyHackerEngine : MonoBehaviour
     public float friendRadius;
     public float friendSpeed;
     public int spawnRate;
-    
+    public float sensitivity; // Between deadzone and infinity
+    public float deadzone; // Between 0 and sensitivity
+    public float maxSpeed;
+    public float powerupSpawnTime;
+    public float enemyMaxSpeedAge;
+
     // Define private global variables
     private Rigidbody2D rb;
     private Camera cam;
@@ -47,12 +53,19 @@ public class TiltyHackerEngine : MonoBehaviour
     private int maxHP;
     private bool dead = false;
     private int score;
+    private Quaternion cal = Quaternion.identity;
+    private bool passedGyroTest = false;
 
-   // Start is called before the first frame update
+    // Testing variables:
+    // private bool trigger = false;
+
+    void Awake() // Things that need to start early
+    {
+        Input.gyro.enabled = true;
+        Screen.orientation = ScreenOrientation.Landscape;
+    }
     void Start()
     {
-        Screen.orientation = ScreenOrientation.Landscape;
-
         rb = GetComponent<Rigidbody2D>();
 
         maxHP = HP.transform.childCount;
@@ -72,6 +85,12 @@ public class TiltyHackerEngine : MonoBehaviour
         powerups = new List<GameObject>();
         powerupObjects = new GameObject[1];
 
+        if(Application.isEditor == true)
+        {
+            passedGyroTest = true;
+            gyroTMP.gameObject.SetActive(false);
+        }
+
         superStart();
     }
 
@@ -85,27 +104,67 @@ public class TiltyHackerEngine : MonoBehaviour
         {
             superStart();
         }
+        if((Vector2) cam.ScreenToWorldPoint(new Vector3(0, 0, cam.nearClipPlane)) != bottomLeft)
+        {
+            bottomLeft = cam.ScreenToWorldPoint(new Vector3(0, 0, cam.nearClipPlane));
+            topRight = cam.ScreenToWorldPoint(new Vector3(cam.pixelWidth, cam.pixelHeight, cam.nearClipPlane));
+            Vector2 topLeft = new Vector2(bottomLeft.x, topRight.y);
+            Vector2 bottomRight = new Vector2(topRight.x, bottomLeft.y);
+            ec.points = new Vector2[5]{bottomLeft,topLeft,topRight,bottomRight,bottomLeft};
+        }
+        if(passedGyroTest)
+        {
+            gyroTMP.gameObject.SetActive(false);
+        }
 
     }
 
-    void FixedUpdate()
+    void FixedUpdate() // Physics calculations
     {
-        float lr = Input.GetAxis("Horizontal");
-        float ud = Input.GetAxis("Vertical");
-        rb.AddForce((Vector2.right * lr + Vector2.up * ud) * 5f);
-
-        if(!dead)
+        if(passedGyroTest)
         {
-            passedTime += Time.fixedDeltaTime;
+            move();
 
-            moveEnemies();
-            powerupHandler();
-            SpawnEnemy();
-            spawnPowerup();
+            if(!dead)
+            {
+                passedTime += Time.fixedDeltaTime;
+
+                moveEnemies();
+                powerupHandler();
+                SpawnEnemy();
+                spawnPowerup();
+            }
+        }
+        else if(qLength(Gyro()) > 0.5f)
+        {
+            passedGyroTest = true;
+            gyroTMP.gameObject.SetActive(false);
+            transform.position = new Vector3(0, 0, 0);
+            calibrate();
+        }
+        else
+        {
+            rb.AddForce((Vector2.right * Random.Range(-1f, 1f) + Vector2.up * Random.Range(-1f, 1f)) * maxSpeed);
         }
     }
 
-    private void superStart()
+    // void OnGUI()
+    // {
+    //     Vector3 point = cal*Gyro()*Vector3.forward;
+    //     Vector2 mov = -Proj(point);
+    //     float magnitude = mov.magnitude;
+        
+    //     GUI.skin.label.fontSize = Screen.width / 40;
+
+    //     GUILayout.Label("Gyro: " + Gyro());
+    //     GUILayout.Label("Movementvektor: " + mov);
+    //     GUILayout.Label("Magnitude: " + magnitude);
+    //     GUILayout.Label("Enabled: " + Input.gyro.enabled);
+    //     GUILayout.Label("In Editor? " + Application.isEditor);
+    //     GUILayout.Label("Triggered? " + trigger);
+    // }
+
+    private void superStart() // Things that need to be setafter every restart
     {
         for(int k = enemyPool.active_object_count-1; k >= 0; k --)
         {
@@ -124,14 +183,75 @@ public class TiltyHackerEngine : MonoBehaviour
         activePowerup = -1;
         powerupTime = 0f;
         passedTime = 0f;
+
+        transform.position = new Vector3(0, 0, 0);
+    }
+    
+    private Quaternion Gyro() // Transform Gyroscope quaternion from right hand side to left hand side
+    {
+        Quaternion q = Input.gyro.attitude;
+        return (new Quaternion(q.x, q.y, -q.z, -q.w));
     }
 
-    // 5 sek itte powerupen er ferdig
-    private void spawnPowerup()
+    private Vector2 Proj(Vector3 p) // Simple stereographic projection
+    {
+        return new Vector2(p.x/p.z, p.y/p.z);
+    }
+
+    public void calibrate() // Calibrate gyro controls
+    {
+        if(Input.gyro.enabled && passedGyroTest)
+        {
+            cal = Quaternion.Inverse(Gyro());
+        }
+    }
+    private float qLength(Quaternion q) // Simple 1 norm of a quaternion
+    {
+        return q.x + q.y + q.z + q.w;
+    }
+
+    private void move() // Movement by tilt controls
+    {
+        float lr = 0f;
+        float ud = 0f;
+        if(Application.isEditor)
+        {
+            lr = Input.GetAxis("Horizontal");
+            ud = Input.GetAxis("Vertical");
+        }
+        else
+        {
+            // After a month of working on tis shit, I've finally made something that works.
+            Vector3 point = cal*Gyro()*Vector3.forward;
+            if(point.z >= 0)
+            {
+                Vector2 mov = -Proj(point);
+                float magnitude = mov.magnitude;
+                mov = mov/magnitude;
+
+                if(magnitude > deadzone)
+                {
+                    if(magnitude < sensitivity)
+                    {
+                        mov = mov*(magnitude/(sensitivity-deadzone)-deadzone/(sensitivity-deadzone));
+                    }
+                }
+                else
+                {
+                    mov = new Vector2(0, 0);
+                }
+                lr = mov.x;
+                ud = mov.y;
+            }
+        }
+        rb.AddForce((Vector2.right * lr + Vector2.up * ud) * maxSpeed);
+    }
+
+    private void spawnPowerup() // Spawn powerupss based on powerupSpawnTime
     {
         if(powerups.Count == 0 && activePowerup == -1)
         {
-            if(lastPowerupSpawnTime > 5)
+            if(lastPowerupSpawnTime > powerupSpawnTime)
             {
                 Vector2 spawnPos = SafeSpawn();
                 GameObject obj = GameObject.Instantiate(powerupPrefab);
@@ -144,7 +264,7 @@ public class TiltyHackerEngine : MonoBehaviour
         }
     }
 
-    private void moveEnemies()
+    private void moveEnemies() // Enemy moving code
     {
         List<Vector2> posList = new List<Vector2>();
         for(int i=0; i < enemyPool.active_object_count; i++)
@@ -154,7 +274,7 @@ public class TiltyHackerEngine : MonoBehaviour
         }
     }
 
-    private void died()
+    private void died() // Run when dead
     {
         dead = true;
         activePowerup = -1;
@@ -191,7 +311,8 @@ public class TiltyHackerEngine : MonoBehaviour
 
         // Save Hackeronies and stuff
     }
-    private void SpawnEnemy()
+
+    private void SpawnEnemy() // Enemyspawning
     {
         int goal = Mathf.FloorToInt(passedTime)*spawnRate+1;
 
@@ -202,9 +323,10 @@ public class TiltyHackerEngine : MonoBehaviour
         }
         spawned = goal;
     }
-    private List<Vector2> moveTowards(GameObject obj, List<Vector2> poss, float age) //Tek posisjonen til alle tidlegare enemieso
+
+    private List<Vector2> moveTowards(GameObject obj, List<Vector2> poss, float age) // Determines how enemies move
     {
-        float speed = age/600 < 0.1f ? age/600 : 0.1f;
+        float speed = age/enemyMaxSpeedAge < 1 ? age/enemyMaxSpeedAge : 1;
         Vector2 position = (transform.position-obj.transform.position).normalized*speed+obj.transform.position;
 
         foreach(Vector2 pos in poss)
@@ -220,7 +342,7 @@ public class TiltyHackerEngine : MonoBehaviour
         return poss;
     }
 
-    private Vector2 SafeSpawn(float radius = 0f)
+    private Vector2 SafeSpawn(float radius = 0f) // Determine a safe spawning position for powerups and enemies
     {
         while(true)
         {
@@ -231,7 +353,8 @@ public class TiltyHackerEngine : MonoBehaviour
             }
         }
     }
-    private void OnTriggerEnter2D(Collider2D col)
+
+    private void OnTriggerEnter2D(Collider2D col) // When the player hits things
     {
         if(col.tag == "Enemy")
         {
@@ -279,7 +402,8 @@ public class TiltyHackerEngine : MonoBehaviour
             }
         }
     }
-    public void enemyHit(GameObject obj, bool damagePlayer = true)
+
+    public void enemyHit(GameObject obj, bool damagePlayer = true) // Hitting an enemy
     {
         if(activePowerup == 0 || damagePlayer == false)
         {
@@ -300,7 +424,7 @@ public class TiltyHackerEngine : MonoBehaviour
         }
     }
 
-    private string precRound(float number, int prec)
+    private string precRound(float number, int prec) // Helper function for nice rounding
     {
         float num = Mathf.Floor(number*Mathf.Pow(10, prec))/Mathf.Pow(10, prec);
         if(num%1 == 0)
@@ -310,14 +434,15 @@ public class TiltyHackerEngine : MonoBehaviour
         return num.ToString();
     }
 
-    private void rotatePowerups()
+    private void rotatePowerups() // How powerups rotate
     {
         foreach(GameObject obj in powerups)
         {
             obj.transform.Rotate(new Vector3(Random.Range(0f,1f),Random.Range(0f,1f),Random.Range(0f,1f)));
         }
     }
-    private void updateTimers()
+
+    private void updateTimers() // Updating timers
     {
         elapsedTimeTMP.text = "Time elapsed: "+precRound(passedTime, 1);
         if(activePowerup != -1)
@@ -329,7 +454,8 @@ public class TiltyHackerEngine : MonoBehaviour
             powerupTimeTMP.text = "";
         }
     }
-    private void updateHP()
+
+    private void updateHP() // Updating HP
     {
         int hp = Mathf.Max(0,health);
 
@@ -346,7 +472,7 @@ public class TiltyHackerEngine : MonoBehaviour
         }
     }
 
-    public void enemyKill(GameObject obj)
+    public void enemyKill(GameObject obj) // Killing an enemy
     {
         GameObject.Instantiate(explosionPrefab, obj.transform.position, Quaternion.identity);
         enemyPool.DisableInstance(obj);
@@ -354,13 +480,7 @@ public class TiltyHackerEngine : MonoBehaviour
         score ++;
     }
 
-    // Korleis vil eg ha powerups??
-    // Noken powerups komboe.
-    // Plukke opp same powerup ++ tida.
-    // maks 2 powerups om gongen.
-    // maks 1 powerup item on screen.
-    // Går for fyrst 1 powerup om gongen, kan legga til 2 om gongen med komboar.
-    private void powerupHandler()
+    private void powerupHandler() // How powerups act upon the world
     {
         if(activePowerup >= 0)
         {
@@ -465,7 +585,7 @@ public class TiltyHackerEngine : MonoBehaviour
     }
 }
 
-public class enemyInfo
+public class enemyInfo // Helper struct for storing information in enemies.
 {
     public float lifetime;
     public bool hasRona;

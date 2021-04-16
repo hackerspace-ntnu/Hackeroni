@@ -20,6 +20,7 @@ public class SimpleBootstrap : MonoBehaviour
 
     void Awake()
     {
+        Screen.orientation = ScreenOrientation.Portrait;
         if (theImmortalMusicSource != null)
             return;
         theImmortalMusicSource = Instantiate(musicSourcePrefab);
