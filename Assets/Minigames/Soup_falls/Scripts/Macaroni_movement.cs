@@ -19,7 +19,7 @@ public class Macaroni_movement : MonoBehaviour
     void Update()
     {
         //gameObject.GetComponent<Transform>().position += new Vector3(1,1,0)*Time.deltaTime;
-        gameObject.GetComponent<Transform>().Rotate(0,0,rotationSpeed);
+        gameObject.GetComponent<Transform>().Rotate(0,0, 600*rotationSpeed*Time.deltaTime);
         if (gameObject.transform.position.y <= Camera.main.ScreenToWorldPoint(Vector3.zero).y)
         {
             //print("Ggggggg");

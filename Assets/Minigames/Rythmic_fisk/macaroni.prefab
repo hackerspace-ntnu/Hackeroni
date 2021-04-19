@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 725653565058729837}
   - component: {fileID: 725653565058729838}
   - component: {fileID: 9168516439910360394}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: macaroni
   m_TagString: Untagged
   m_Icon: {fileID: 0}

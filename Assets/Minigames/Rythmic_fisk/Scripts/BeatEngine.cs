@@ -4,8 +4,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Assets.Scripts;
+using UnityEngine.EventSystems;
 
-public class BeatEngine : MonoBehaviour
+public class BeatEngine : MonoBehaviour, IPointerDownHandler
 {
     public GameObject macaroniPrefab;
     public GameObject successEffectPrefab;
@@ -36,7 +37,7 @@ public class BeatEngine : MonoBehaviour
     private PoolAllocator<float> successEffectPool;
 
     private float macaroniTouchRadiusSqr;
-    private float beatRadius;
+    public float beatRadius;
 
     private int numberFailures = 0;
     private int comboCount = 0;
@@ -60,8 +61,6 @@ public class BeatEngine : MonoBehaviour
         var circle = macaroniPool.gameObjects[0].GetComponent<CircleCollider2D>();
         var macaroniTouchRadius = circle.radius * circle.transform.localScale.x;
         macaroniTouchRadiusSqr = macaroniTouchRadius * macaroniTouchRadius;
-        
-        beatRadius = GetComponent<CircleCollider2D>().radius * transform.localScale.x;
 
         float seconds_per_beat = 60f / beats_per_minute;
         float seconds_per_32_bar = seconds_per_beat / 8f;
@@ -196,18 +195,6 @@ public class BeatEngine : MonoBehaviour
             }
         }
 
-        if (Input.GetMouseButtonDown(0) && Input.mousePresent)
-        {
-            CheckClick(Input.mousePosition);
-        }
-        for(int i = 0; i < Input.touchCount; i++)
-        {
-            if (Input.touches[i].phase == TouchPhase.Began)
-            {
-                CheckClick(Input.touches[i].position);
-            }
-        }
-
         for(int i = macaroniPool.active_object_count - 1; i >= 0; i--)
         {
             if (macaroniPool.metadata[i].desiredTimeWhenReachedTarget < timer - destroyTime)
@@ -248,14 +235,17 @@ public class BeatEngine : MonoBehaviour
         statisticsText.text = string.Format("{0}\n{1} {2}\n{3}", score, result.Item1 ? "(NEW!)" : null, result.Item2, hackeronis);
     }
 
-    private void CheckClick(Vector2 position)
+    public void OnPointerDown (PointerEventData pointerData)
     {
+        if (Time.timeScale == 0) {
+            return;
+        }
         bool hitSomeone = false;
         for (int i = macaroniPool.active_object_count - 1; i >= 0; i--)
         {
             var data = macaroniPool.metadata[i];
             var obj = macaroniPool.gameObjects[i];
-            var diff = Camera.main.ScreenToWorldPoint(Input.mousePosition)- obj.transform.position;
+            var diff = Camera.main.ScreenToWorldPoint(pointerData.position)- obj.transform.position;
             diff.z = 0;
 
             var time_diff = Mathf.Abs(timer - data.desiredTimeWhenReachedTarget);

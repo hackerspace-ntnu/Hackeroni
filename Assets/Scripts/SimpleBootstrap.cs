@@ -16,7 +16,7 @@ public class SimpleBootstrap : MonoBehaviour
     private int hackeronisBeforeMinigameIsLaunched = 0;
 
     public AudioSource musicSourcePrefab;
-    private static AudioSource theImmortalMusicSource = null;
+    public static AudioSource theImmortalMusicSource = null;
 
     void Awake()
     {
@@ -113,5 +113,9 @@ public class SimpleBootstrap : MonoBehaviour
 
         hackeroniText.text = currentHackeronis.ToString();
         hackeronisBeforeMinigameIsLaunched = previousHackeronis;
+    }
+    
+    public void QuitGame() {
+        Application.Quit();
     }
 }

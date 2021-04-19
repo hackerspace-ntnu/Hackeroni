@@ -90,6 +90,7 @@ public class GameTracker : MonoBehaviour
 
             end_screen_canvas.SetActive(true);
             gameIsOn = false;
+            Time.timeScale = 0;
             lives = -1;
         }
 
