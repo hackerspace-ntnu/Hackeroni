@@ -13,6 +13,14 @@ public class Engine : MonoBehaviour
     public GameObject EndScreen;
     public GameObject Particles;
     public GameObject Initiate;
+    
+    public AudioClip InitialClickSound;
+    public AudioClip SuccessClickSound;
+    public AudioClip FailClickSound;
+    public AudioClip PastaClickSound;
+    public AudioClip CompletedSound;
+    
+    private AudioSource audioSource;
 
     private List<GameObject> Buttons = new List<GameObject>();
 
@@ -39,7 +47,7 @@ public class Engine : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        audioSource = GetComponent<AudioSource>();   
         EndScreen.SetActive(false);
         Initiate.GetComponent<Button>().onClick.AddListener(InitiateOnClick);
 
@@ -251,12 +259,14 @@ public class Engine : MonoBehaviour
         }
         if (Button.GetComponent<ButtonScript>().IsPastaBomb) {
             //Is macaroni kill button
+            audioSource.PlayOneShot(PastaClickSound);
             ButtonsEnabled = false;
             StartCoroutine(StartGameOverSequence()); 
             return;
         }
         if(Guess1 == null)
         {
+            audioSource.PlayOneShot(InitialClickSound);
             Guess1 = Button;
             Button.GetComponent<ButtonScript>().Reveal(true);
         }
@@ -268,6 +278,7 @@ public class Engine : MonoBehaviour
             if (Guess1.GetComponent<ButtonScript>().getMatchNumber() ==
                Guess2.GetComponent<ButtonScript>().getMatchNumber())
             {
+                audioSource.PlayOneShot(SuccessClickSound);
                 ChangeBoard();
 
                 Guess1.GetComponent<ButtonScript>().setComplete(true);
@@ -280,6 +291,7 @@ public class Engine : MonoBehaviour
             }
             else
             {
+                audioSource.PlayOneShot(FailClickSound);
                 WrongTime = 0.5f;
                 Fails += 1;
                 EnableButtons(false);
@@ -369,7 +381,7 @@ public class Engine : MonoBehaviour
                 Button.GetComponent<ButtonScript>().setComplete(true);
                 Button.GetComponent<ButtonScript>().Reveal(true);
             }
-
+            audioSource.PlayOneShot(CompletedSound);
             EndScreen.SetActive(true);
             EndScreen.transform.GetChild(1).GetComponent<TextMeshProUGUI>().text = GetScore().ToString();
             EndScreen.transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = "Fails: " + Fails.ToString();
