@@ -10,38 +10,36 @@ public class SimpleBootstrap : MonoBehaviour
 {
     public TMP_Text hackeroniText;
 
-    private bool gameLaunched = false;
-    private int launchedGameId = 0;
+    private static bool gameLaunched = false;
+    private static int launchedGameId = 0;
 
-    private int hackeronisBeforeMinigameIsLaunched = 0;
+    private static int hackeronisBeforeMinigameIsLaunched = 0;
 
     public AudioSource musicSourcePrefab;
+    public AudioClip hackeroniEarnedSound;
     public static AudioSource theImmortalMusicSource = null;
 
     void Awake()
     {
         Screen.orientation = ScreenOrientation.Portrait;
-        if (theImmortalMusicSource != null)
-            return;
-        theImmortalMusicSource = Instantiate(musicSourcePrefab);
-        DontDestroyOnLoad(theImmortalMusicSource);
-        theImmortalMusicSource.Play();
+        if (theImmortalMusicSource == null) 
+        {
+            theImmortalMusicSource = Instantiate(musicSourcePrefab);
+            DontDestroyOnLoad(theImmortalMusicSource);
+            theImmortalMusicSource.Play();
+        }
     }
 
     void Start()
     {
         hackeroniText.text = PlayerPrefs.GetInt("Hackeronis", 0).ToString();
-    }
-
-    void OnSceneEnd()
-    {
-        gameLaunched = false;
-        Screen.orientation = ScreenOrientation.Portrait;
-        StartCoroutine(HackeroniEarnedAnimation());
-        if (theImmortalMusicSource != null)
+        
+        if (gameLaunched)
         {
             theImmortalMusicSource.time = 0;
             theImmortalMusicSource.Play();
+            StartCoroutine(HackeroniEarnedAnimation());
+            gameLaunched = false;
         }
     }
 
@@ -62,23 +60,23 @@ public class SimpleBootstrap : MonoBehaviour
             switch (buttonIndex)
             {
                 case 0:
-                    MinigameScene.LoadMinigameScene("MatchTwo", OnSceneEnd);
+                    MinigameScene.LoadMinigameScene("MatchTwo");
                     break;
                 case 1:
-                    MinigameScene.LoadMinigameScene("Rythmic_fisk", OnSceneEnd);
+                    MinigameScene.LoadMinigameScene("Rythmic_fisk");
                     break;
                 case 2:
-                    MinigameScene.LoadMinigameScene("TrickyTrumpTest", OnSceneEnd);
+                    MinigameScene.LoadMinigameScene("TrickyTrumpTest");
                     break;
                 case 3:
-                    MinigameScene.LoadMinigameScene("TiltyHacker", OnSceneEnd);
+                    MinigameScene.LoadMinigameScene("TiltyHacker");
                     break;
                 // TODO Add new games here as they are made
                 case 4:
-                    MinigameScene.LoadMinigameScene("Soup_falls", OnSceneEnd);
+                    MinigameScene.LoadMinigameScene("Soup_falls");
                     break;
                 case 5:
-                    // MinigameScene.LoadMinigameScene("Rythmic_fisk", OnSceneEnd); 
+                    MinigameScene.LoadMinigameScene("ConnectFour"); 
                     break;
                 default:
                     gameLaunched = false;
@@ -100,7 +98,7 @@ public class SimpleBootstrap : MonoBehaviour
             yield break;
         }
 
-        GetComponent<AudioSource>().Play();
+        ButtonSoundManager.singletonSource.PlayOneShot(hackeroniEarnedSound);
         float animationTime = 1.5f;
         float timer = 0;
 

@@ -55,7 +55,7 @@ public class ShopEngineScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        audioSource = GetComponent<AudioSource>();
+        audioSource = ButtonSoundManager.singletonSource; 
         SpriteStatusLists = new List<SpriteStatus>[3] { new List<SpriteStatus>(), new List<SpriteStatus>(), new List<SpriteStatus>() };
         CurrentEquipment = new SpriteStatus[3] { new SpriteStatus(), new SpriteStatus(), new SpriteStatus() };
         EquipmentDisplays = new GameObject[3] { HatDisplay, SkinDisplay, WallpaperDisplay };

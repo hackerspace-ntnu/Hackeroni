@@ -7,7 +7,7 @@ public class ButtonSoundManager : MonoBehaviour
 {
     public Button [] buttons;
     
-    private static AudioSource singletonSource;
+    public static AudioSource singletonSource;
     // Start is called before the first frame update
     void Awake()
     {
@@ -15,7 +15,6 @@ public class ButtonSoundManager : MonoBehaviour
             var src = GetComponent<AudioSource>();
             if (src != null) {
                 DontDestroyOnLoad(gameObject);
-                gameObject.AddComponent<AudioListener>();
                 singletonSource = src; 
             }
         }

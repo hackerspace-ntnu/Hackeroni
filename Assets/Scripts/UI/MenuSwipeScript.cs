@@ -11,7 +11,7 @@ public class MenuSwipeScript : MonoBehaviour, IEndDragHandler, IBeginDragHandler
 
     private ScrollRect scrollRect;
     private RectTransform rect;
-    private int currentIndex = 0;
+    private static int currentIndex = 0; //The should persist should Scene changes
     private int childCount;
     private bool isDragging = false;
     private float previousScrollingSign = 0;

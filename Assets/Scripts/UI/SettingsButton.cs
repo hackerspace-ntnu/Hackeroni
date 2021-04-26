@@ -29,7 +29,7 @@ public class SettingsButton : MonoBehaviour
             if (Input.GetMouseButtonDown(0))
             {
                 var rect = SettingsPanel.GetComponent<RectTransform>();
-                if (!RectTransformUtility.RectangleContainsScreenPoint(rect, Input.mousePosition, null))
+                if (!(RectTransformUtility.RectangleContainsScreenPoint(rect, Input.mousePosition, null) || RectTransformUtility.RectangleContainsScreenPoint(rect, Input.mousePosition, Camera.main)))
                 {
                     OnButtonPress();
                 }

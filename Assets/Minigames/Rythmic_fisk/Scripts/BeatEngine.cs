@@ -6,7 +6,7 @@ using TMPro;
 using Assets.Scripts;
 using UnityEngine.EventSystems;
 
-public class BeatEngine : MonoBehaviour, IPointerDownHandler
+public class BeatEngine : MonoBehaviour
 {
     public GameObject macaroniPrefab;
     public GameObject successEffectPrefab;
@@ -114,6 +114,7 @@ public class BeatEngine : MonoBehaviour, IPointerDownHandler
 
     public void ResetState()
     {
+        Time.timeScale = 1;
         timer = -0.05f;
         beat_index = 0;
         for(int i=0; i < macaroniPool.active_object_count; i++)
@@ -175,6 +176,18 @@ public class BeatEngine : MonoBehaviour, IPointerDownHandler
             beat_index++;
         }
 
+        if (Input.GetMouseButtonDown(0) && Input.mousePresent)
+        {
+            OnClick(Input.mousePosition);
+        }
+        for(int i = 0; i < Input.touchCount; i++)
+        {
+            if (Input.touches[i].phase == TouchPhase.Began)
+            {
+                OnClick(Input.touches[i].position);
+            }
+        }
+
         for(int i = 0; i < macaroniPool.active_object_count; i++)
         {
             var data = macaroniPool.metadata[i];
@@ -222,10 +235,11 @@ public class BeatEngine : MonoBehaviour, IPointerDownHandler
 
     private void CongratulatePlayer()
     {
+        Time.timeScale = 0;
         hooraySoundEffect.Play();
         endScreenCanvas.enabled = true;
-        gameoverText.enabled = false;
-        congratulationsText.enabled = true;
+        gameoverText.gameObject.SetActive(false);
+        congratulationsText.gameObject.SetActive(true);
         statisticsText.transform.parent.gameObject.SetActive(true);
         statisticsText.enabled = true;
         var result = PlayerPrefManager.GetAndOrUpdateHighscore("BeatPasta", score);
@@ -235,19 +249,22 @@ public class BeatEngine : MonoBehaviour, IPointerDownHandler
         statisticsText.text = string.Format("{0}\n{1} {2}\n{3}", score, result.Item1 ? "(NEW!)" : null, result.Item2, hackeronis);
     }
 
-    public void OnPointerDown (PointerEventData pointerData)
+    public void OnClick (Vector3 clickPosition)
     {
         if (Time.timeScale == 0) {
             return;
         }
+        
+        var worldClickPosition = Camera.main.ScreenToWorldPoint(clickPosition);
+        worldClickPosition.z = 0;
+
         bool hitSomeone = false;
         for (int i = macaroniPool.active_object_count - 1; i >= 0; i--)
         {
             var data = macaroniPool.metadata[i];
             var obj = macaroniPool.gameObjects[i];
-            var diff = Camera.main.ScreenToWorldPoint(pointerData.position)- obj.transform.position;
+            var diff = worldClickPosition - obj.transform.position;
             diff.z = 0;
-
             var time_diff = Mathf.Abs(timer - data.desiredTimeWhenReachedTarget);
             if(diff.sqrMagnitude < macaroniTouchRadiusSqr && time_diff < clickMargin)
             {
@@ -260,7 +277,7 @@ public class BeatEngine : MonoBehaviour, IPointerDownHandler
                 break;
             }
         }
-        if (hitSomeone == false)
+        if (hitSomeone == false && worldClickPosition.sqrMagnitude < 4 * beatRadius * beatRadius)
         {
             ResetCombo();
         }
@@ -273,9 +290,10 @@ public class BeatEngine : MonoBehaviour, IPointerDownHandler
        failSoundEffect?.Play();
        if (numberFailures > 4)
        {
+           Time.timeScale = 0;
            endScreenCanvas.enabled = true;
-           gameoverText.enabled = true;
-           congratulationsText.enabled = false;
+           gameoverText.gameObject.SetActive(true);
+           congratulationsText.gameObject.SetActive(false);
            statisticsText.transform.parent.gameObject.SetActive(false);
            musicSource.Stop();
        }

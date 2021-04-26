@@ -26,4 +26,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Soup_falls.unity
     guid: c54ea3bb2633b4ec9b4d46d68d7cb47e
+  - enabled: 1
+    path: Assets/Scenes/ConnectFour.unity
+    guid: 703f56ca65349134d856a844889c3383
   m_configObjects: {}
