@@ -21,6 +21,7 @@ public class PoolAllocator<T> where T : new()
             metadata.Add(new T());
         }
     }
+    
     public GameObject CreateInstance(T metadata)
     {
         if (active_object_count >= gameObjects.Count)
@@ -54,11 +55,16 @@ public class PoolAllocator<T> where T : new()
         gameObjects[index] = obj;
         metadata[index] = data;
     }
+
     public void DisableInstance(GameObject obj)
     {
-        DisableInstance(gameObjects.IndexOf(obj));
+        DisableInstance(GetIndex(obj));
     }
 
+    public int GetIndex(GameObject obj)
+    {
+        return gameObjects.IndexOf(obj);
+    }
 
     public void Destroy()
     {

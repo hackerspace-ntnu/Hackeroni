@@ -32,6 +32,9 @@ public class TiltyHackerEngine : MonoBehaviour
     public float maxSpeed;
     public float powerupSpawnTime;
     public float enemyMaxSpeedAge;
+    public Sprite angryTomat;
+    public Sprite sickTomat;
+    public SpriteRenderer hatSprite;
 
     // Define private global variables
     private Rigidbody2D rb;
@@ -66,6 +69,10 @@ public class TiltyHackerEngine : MonoBehaviour
     }
     void Start()
     {
+        GetComponent<SpriteRenderer>().sprite = PlayerPrefManager.GetCurrentSkinSprite();
+        GetComponent<SpriteRenderer>().color = PlayerPrefManager.GetCurrentColor();
+        hatSprite.sprite = PlayerPrefManager.GetCurrentHatSprite();
+
         rb = GetComponent<Rigidbody2D>();
 
         maxHP = HP.transform.childCount;
@@ -283,7 +290,7 @@ public class TiltyHackerEngine : MonoBehaviour
         {
             if(enemyPool.metadata[k].hasRona == true)
             {
-                enemyPool.gameObjects[k].GetComponent<SpriteRenderer>().color = Color.red;
+                enemyPool.gameObjects[k].GetComponent<SpriteRenderer>().sprite = angryTomat;
                 enemyPool.gameObjects[k].transform.GetChild(0).gameObject.SetActive(false);
             }
         }
@@ -388,7 +395,7 @@ public class TiltyHackerEngine : MonoBehaviour
                 powerupTime = 10f;
                 int randint = Random.Range(0, enemyPool.active_object_count+1);
                 enemyPool.metadata[randint].hasRona = true;
-                enemyPool.gameObjects[randint].GetComponent<SpriteRenderer>().color = Color.green;
+                enemyPool.gameObjects[randint].GetComponent<SpriteRenderer>().sprite = sickTomat;
                 enemyPool.gameObjects[randint].transform.GetChild(0).gameObject.SetActive(true);
 
             }
@@ -403,24 +410,37 @@ public class TiltyHackerEngine : MonoBehaviour
         }
     }
 
-    public void enemyHit(GameObject obj, bool damagePlayer = true) // Hitting an enemy
+    public void enemyHit(GameObject obj, bool player=true) // Hitting an enemy
     {
-        if(activePowerup == 0 || damagePlayer == false)
+        if(player)
         {
-            enemyKill(obj);
+            switch(activePowerup)
+            {
+                case 0:
+                    enemyKill(obj);
+                    break;
+                case 3:
+                    int index = enemyPool.GetIndex(obj);
+                    enemyPool.metadata[index].hasRona = false;
+                    enemyPool.gameObjects[index].GetComponent<SpriteRenderer>().sprite = angryTomat;
+                    goto default;
+                default:
+                    enemyKill(obj);
+                    if(health > 1)
+                    {
+                        health --;
+                    }
+                    else if(health == 1)
+                    {
+                        health --;
+                        died();
+                    }
+                    break;
+            }
         }
         else
         {
             enemyKill(obj);
-            if(health > 1)
-            {
-                health --;
-            }
-            else if(health == 1)
-            {
-                health --;
-                died();
-            }
         }
     }
 
@@ -493,6 +513,17 @@ public class TiltyHackerEngine : MonoBehaviour
                     break;
                 case 1:
                     transform.Rotate(Vector3.forward*60*Time.fixedDeltaTime);
+                    SpriteRenderer lol =  powerupObjects[0].GetComponent<SpriteRenderer>();
+                    if(powerupTime % 0.2f >= 0.1f)
+                    {
+                        lol.flipX = true;
+                        lol.flipY = true;
+                    }
+                    else
+                    {
+                        lol.flipX = false;
+                        lol.flipY = false;
+                    }
                     break;
                 case 2:
                     if(powerupTime > 0.1f)
@@ -503,7 +534,6 @@ public class TiltyHackerEngine : MonoBehaviour
                     {
                         powerupObjects[0].transform.GetChild(0).gameObject.SetActive(true);
                         powerupObjects[0].GetComponentInChildren<TextMeshPro>().text = "";
-                        powerupObjects[0].transform.GetChild(0).localScale = new Vector3(1,1,1)*(1/(powerupTime*10f+0.1f));
                     }
                     break;
                 case 3:
@@ -529,7 +559,7 @@ public class TiltyHackerEngine : MonoBehaviour
                         if(infected[i] == true)
                         {
                             enemyPool.metadata[i].hasRona = true;
-                            enemyPool.gameObjects[i].GetComponent<SpriteRenderer>().color = Color.green;
+                            enemyPool.gameObjects[i].GetComponent<SpriteRenderer>().sprite = sickTomat;
                             enemyPool.gameObjects[i].transform.GetChild(0).gameObject.SetActive(true);
                         }
                     }
@@ -567,7 +597,7 @@ public class TiltyHackerEngine : MonoBehaviour
                             if(enemyPool.metadata[k].hasRona == true)
                             {
                                 GameObject.Instantiate(explosionPrefab, enemyPool.gameObjects[k].transform.position, Quaternion.identity);
-                                enemyPool.gameObjects[k].GetComponent<SpriteRenderer>().color = Color.red;
+                                enemyPool.gameObjects[k].GetComponent<SpriteRenderer>().sprite = angryTomat;
                                 enemyPool.gameObjects[k].transform.GetChild(0).gameObject.SetActive(false);
                                 enemyPool.DisableInstance(k); // Kan disabla enemies og øydelegga indekseringo?
                             }

@@ -5,7 +5,7 @@ using UnityEngine;
 public class HitregMessager : MonoBehaviour
 {
     private TiltyHackerEngine engine;
-    public bool damagePlayer = false;
+    public bool player = false;
 
     void Start()
     {
@@ -13,6 +13,6 @@ public class HitregMessager : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D col) // Av og til blir det samma objektet calla to gonga?
     {
-        engine.enemyHit(col.gameObject, damagePlayer);
+        engine.enemyHit(col.gameObject, player);
     }
 }
