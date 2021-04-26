@@ -100,6 +100,7 @@ public class SimpleBootstrap : MonoBehaviour
             yield break;
         }
 
+        GetComponent<AudioSource>().Play();
         float animationTime = 1.5f;
         float timer = 0;
 

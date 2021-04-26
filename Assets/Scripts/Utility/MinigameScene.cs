@@ -94,10 +94,11 @@ namespace Assets.Scripts
                 }
             }
             
-            var loadOp = SceneManager.UnloadSceneAsync(sceneParams.sceneName);
 
+            var loadOp = SceneManager.LoadSceneAsync(sceneParams.sceneName, LoadSceneMode.Additive);
             loadOp.completed += (o) => {
-                SceneManager.LoadSceneAsync(sceneParams.sceneName, LoadSceneMode.Additive);
+            //    SceneManager.LoadSceneAsync(sceneParams.sceneName, LoadSceneMode.Additive);
+                SceneManager.UnloadSceneAsync(sceneParams.sceneName);
             };
         }
 

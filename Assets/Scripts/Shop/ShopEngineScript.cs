@@ -15,6 +15,11 @@ public class ShopEngineScript : MonoBehaviour
     public GameObject ContentObject;
 
     public List<GameObject> Tabs = new List<GameObject>();
+    
+    public AudioClip SelectionSound;
+    public AudioClip BuySound;
+    public AudioClip FailToBuySound;
+    private AudioSource audioSource;
 
     private int Hackeronis;
 
@@ -50,6 +55,7 @@ public class ShopEngineScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        audioSource = GetComponent<AudioSource>();
         SpriteStatusLists = new List<SpriteStatus>[3] { new List<SpriteStatus>(), new List<SpriteStatus>(), new List<SpriteStatus>() };
         CurrentEquipment = new SpriteStatus[3] { new SpriteStatus(), new SpriteStatus(), new SpriteStatus() };
         EquipmentDisplays = new GameObject[3] { HatDisplay, SkinDisplay, WallpaperDisplay };
@@ -347,6 +353,7 @@ public class ShopEngineScript : MonoBehaviour
     {
         if(ButtonCode.Contains("Tab"))
         {
+            audioSource.PlayOneShot(SelectionSound);
             SwitchTab(ButtonCode);
         }
         else if (ButtonCode.Contains("EquipColors"))
@@ -415,6 +422,8 @@ public class ShopEngineScript : MonoBehaviour
                     CurrentEquipment[Type] = Item;
                     Item.Status = "Equipped";
                     PlayerPrefs.SetString("Current" + ListName[Type], ListName[Type] + "/" + Item.Name + "-" + Item.Cost);
+                    
+                    audioSource.PlayOneShot(SelectionSound);
                 }
                 else if (Item.Status == "Unavailable" && Hackeronis >= Item.Cost)
                 {
@@ -424,6 +433,10 @@ public class ShopEngineScript : MonoBehaviour
                     PlayerPrefs.SetString("Current" + ListName[Type], ListName[Type] + "/" + Item.Name + "-" + Item.Cost);
 
                     SpendMoney(Item.Cost);
+                    
+                    audioSource.PlayOneShot(BuySound);
+                } else {
+                    audioSource.PlayOneShot(FailToBuySound);
                 }
 
                 SavePlayerPrefs(Type);
@@ -445,6 +458,8 @@ public class ShopEngineScript : MonoBehaviour
                     CurrentColor = ColorStatus;
                     ColorStatus.Status = "Equipped";
                     PlayerPrefs.SetString("CurrentColors", ColorStatus.Name);
+
+                    audioSource.PlayOneShot(SelectionSound);
                 }
                 else if (ColorStatus.Status == "Unavailable" && Hackeronis >= ColorStatus.Cost)
                 {
@@ -454,6 +469,10 @@ public class ShopEngineScript : MonoBehaviour
                     PlayerPrefs.SetString("CurrentColors", ColorStatus.Name);
 
                     SpendMoney(ColorStatus.Cost);
+
+                    audioSource.PlayOneShot(BuySound);
+                } else {
+                    audioSource.PlayOneShot(FailToBuySound);
                 }
 
                 SaveColorPlayerPrefs();
