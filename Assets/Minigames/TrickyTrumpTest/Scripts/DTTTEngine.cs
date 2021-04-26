@@ -24,7 +24,11 @@ public class DTTTEngine : MonoBehaviour
     public Button FakeButton;
     public Button NextButton;
     public GameObject EndGameScreenCanvas;
-
+    public AudioSource tickTockAudioSource;
+    public AudioClip IncorrectSound;
+    public AudioClip CorrectSound;
+    public AudioClip TimeoutSound;
+    private AudioSource audioSource;
     public float MinNumberSecondsToAnswer = 5;
     public float MaxNumberSecondsToAnswer = 20;
 
@@ -37,6 +41,7 @@ public class DTTTEngine : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        audioSource = GetComponent<AudioSource>();
         //CreateTweetListPrefabs();
         LoadTweets();
         NewTweet();
@@ -56,8 +61,7 @@ public class DTTTEngine : MonoBehaviour
             Timer.size = time;
             if (time < 0)
             {
-                IncorrectText.text = "Time's up";
-                AnswerCompleted(false);
+                AnswerCompleted(false, true);
             }
 
             time -= Time.deltaTime / (Mathf.Lerp(MinNumberSecondsToAnswer, MaxNumberSecondsToAnswer, Mathf.Clamp01(TweetText.text.Length / 400f)));
@@ -116,6 +120,7 @@ public class DTTTEngine : MonoBehaviour
 
         time = 1;
         isPaused = false;
+        tickTockAudioSource.UnPause();
     }
 
     void NextButtonOnClick()
@@ -125,25 +130,33 @@ public class DTTTEngine : MonoBehaviour
 
     void RealButtonOnClick()
     {
-        IncorrectText.text = "Incorrect";
-        AnswerCompleted(TweetIsReal == true);
+        AnswerCompleted(TweetIsReal == true, false);
     }
 
     void FakeButtonOnClick()
     {
-        IncorrectText.text = "Incorrect";
-        AnswerCompleted(TweetIsReal == false);
+        AnswerCompleted(TweetIsReal == false, false);
     }
 
-    void AnswerCompleted(bool correct)
+    void AnswerCompleted(bool correct, bool timeout)
     {
+        tickTockAudioSource.Pause();
+
         if(correct) {
             RightAmount += 1;
             CorrectText.gameObject.SetActive(true);
+            audioSource.PlayOneShot(CorrectSound);
         }
         else {
             WrongAmount += 1;
             IncorrectText.gameObject.SetActive(true);
+            if (timeout) {
+                IncorrectText.text = "Time's up";
+                audioSource.PlayOneShot(TimeoutSound);
+            } else {
+                IncorrectText.text = "Incorrect";
+                audioSource.PlayOneShot(IncorrectSound);
+            }
 
             var fadeTime = 0.7f;
             if (WrongAmount == 1) {
