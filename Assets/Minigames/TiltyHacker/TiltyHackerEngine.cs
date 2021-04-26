@@ -20,7 +20,12 @@ public class TiltyHackerEngine : MonoBehaviour
     public GameObject explosionPrefab;
     public GameObject friendPrefab;
     public GameObject friendExplosionPrefab;
+    public GameObject bombExplosionPrefab;
     public GameObject HP;
+    public Sprite angryTomat;
+    public Sprite sickTomat;
+    public SpriteRenderer hatSprite;
+    public SpriteRenderer playerSprite;
     public float vibrationKoeffisient;
     public float vibrationDistanse;
     public float ronaChance;
@@ -31,10 +36,11 @@ public class TiltyHackerEngine : MonoBehaviour
     public float deadzone; // Between 0 and sensitivity
     public float maxSpeed;
     public float powerupSpawnTime;
+    public float[] powerupDurations;
     public float enemyMaxSpeedAge;
-    public Sprite angryTomat;
-    public Sprite sickTomat;
-    public SpriteRenderer hatSprite;
+    public float explosionDistance;
+    public float beamFlipRate;
+    public float safeSpawnRadius;
 
     // Define private global variables
     private Rigidbody2D rb;
@@ -55,7 +61,8 @@ public class TiltyHackerEngine : MonoBehaviour
     private int health;
     private int maxHP;
     private bool dead = false;
-    private int score;
+    private int kills;
+    private int hackeronies;
     private Quaternion cal = Quaternion.identity;
     private bool passedGyroTest = false;
 
@@ -69,9 +76,21 @@ public class TiltyHackerEngine : MonoBehaviour
     }
     void Start()
     {
-        GetComponent<SpriteRenderer>().sprite = PlayerPrefManager.GetCurrentSkinSprite();
-        GetComponent<SpriteRenderer>().color = PlayerPrefManager.GetCurrentColor();
+        playerSprite.sprite = PlayerPrefManager.GetCurrentSkinSprite();
+        playerSprite.color = PlayerPrefManager.GetCurrentColor();
         hatSprite.sprite = PlayerPrefManager.GetCurrentHatSprite();
+
+        Bounds playerBounds = playerSprite.sprite.bounds;
+        Bounds hatBounds = hatSprite.sprite.bounds;
+
+        float playerXFactor = 1/playerBounds.size.x;
+        float playerYFactor = 1/playerBounds.size.y;
+
+        float hatXFactor = 1/hatBounds.size.x/2;
+        float hatYFactor = 1/hatBounds.size.y/2;
+
+        transform.GetChild(0).localScale = new Vector3(playerXFactor, playerYFactor, 0);
+        transform.GetChild(1).localScale = new Vector3(hatXFactor, hatYFactor, 0);
 
         rb = GetComponent<Rigidbody2D>();
 
@@ -87,7 +106,7 @@ public class TiltyHackerEngine : MonoBehaviour
         Vector2 bottomRight = new Vector2(topRight.x, bottomLeft.y);
         ec.points = new Vector2[5]{bottomLeft,topLeft,topRight,bottomRight,bottomLeft};
 
-        enemyPool = new PoolAllocator<enemyInfo>(enemyPrefab, 25);
+        enemyPool = new PoolAllocator<enemyInfo>(enemyPrefab, 100);
 
         powerups = new List<GameObject>();
         powerupObjects = new GameObject[1];
@@ -185,11 +204,12 @@ public class TiltyHackerEngine : MonoBehaviour
 
         spawned = 0;
         health = maxHP;
-        score = 0;
+        kills = 0;
         dead = false;
         activePowerup = -1;
         powerupTime = 0f;
         passedTime = 0f;
+        lastPowerupSpawnTime = 0f;
 
         transform.position = new Vector3(0, 0, 0);
     }
@@ -283,6 +303,10 @@ public class TiltyHackerEngine : MonoBehaviour
 
     private void died() // Run when dead
     {
+        int score = kills - 10;
+        hackeronies = score; // Should be optimized.
+        PlayerPrefManager.AddEarnedHackeronis(score);
+
         dead = true;
         activePowerup = -1;
 
@@ -295,8 +319,18 @@ public class TiltyHackerEngine : MonoBehaviour
             }
         }
 
-        finalScoreTMP.text = "Final Score: "+ score.ToString();
-        hackeronisTMP.text = "Hackeronies acquired: 0";
+        var high = PlayerPrefManager.GetAndOrUpdateHighscore("FuckingGyroskop", score);
+
+        if(!high.Item1)
+        {
+            finalScoreTMP.text = "Final Score: " + score.ToString() + "\nHighscore: " + high.Item2;
+        }
+        else
+        {
+            finalScoreTMP.text = "New highscore: " + high.Item2 + "!!";
+        }
+        
+        hackeronisTMP.text = "Hackeronies acquired: " + hackeronies.ToString();
 
         restartTMP.gameObject.SetActive(true);
         gameOverTMP.gameObject.SetActive(true);
@@ -354,7 +388,7 @@ public class TiltyHackerEngine : MonoBehaviour
         while(true)
         {
             Vector2 vector = new Vector2(Random.Range(bottomLeft.x + radius,topRight.x - radius),Random.Range(bottomLeft.y + radius,topRight.y - radius));
-            if(Vector2.Distance(transform.position, vector) > 3)
+            if(Vector2.Distance(transform.position, vector) > safeSpawnRadius)
             {
                 return vector;
             }
@@ -375,24 +409,24 @@ public class TiltyHackerEngine : MonoBehaviour
             if(col.tag == "Powerup0") // Spin2Win
             {
                 activePowerup = 0;
-                powerupTime = 10f;
+                powerupTime = powerupDurations[0];
             }
             else if(col.tag == "Powerup1") // Blaster
             {
                 activePowerup = 1;
-                powerupTime = 10f;
+                powerupTime = powerupDurations[1];
                 powerupObjects[0] = GameObject.Instantiate(beamPrefab, transform);
             }
             else if(col.tag == "Powerup2") // Bomb
             {
                 activePowerup = 2;
-                powerupTime = 5.1f;
+                powerupTime = powerupDurations[2];
                 powerupObjects[0] = GameObject.Instantiate(bombPrefab, transform.position, Quaternion.identity);
             }
             else if(col.tag == "Powerup3") // Corona
             {
                 activePowerup = 3;
-                powerupTime = 10f;
+                powerupTime = powerupDurations[3];
                 int randint = Random.Range(0, enemyPool.active_object_count+1);
                 enemyPool.metadata[randint].hasRona = true;
                 enemyPool.gameObjects[randint].GetComponent<SpriteRenderer>().sprite = sickTomat;
@@ -402,7 +436,7 @@ public class TiltyHackerEngine : MonoBehaviour
             else if(col.tag == "Powerup4") // Friend
             {
                 activePowerup = 4;
-                powerupTime = 10f;
+                powerupTime = powerupDurations[4];
                 powerupObjects[0] =  GameObject.Instantiate(friendPrefab, SafeSpawn(1f), Quaternion.identity);
                 int t = Random.Range(0,360);
                 friendDirection = new Vector3(Mathf.Cos(t), Mathf.Sin(t), 0);
@@ -423,6 +457,7 @@ public class TiltyHackerEngine : MonoBehaviour
                     int index = enemyPool.GetIndex(obj);
                     enemyPool.metadata[index].hasRona = false;
                     enemyPool.gameObjects[index].GetComponent<SpriteRenderer>().sprite = angryTomat;
+                    enemyPool.gameObjects[index].transform.GetChild(0).gameObject.SetActive(false);
                     goto default;
                 default:
                     enemyKill(obj);
@@ -497,7 +532,7 @@ public class TiltyHackerEngine : MonoBehaviour
         GameObject.Instantiate(explosionPrefab, obj.transform.position, Quaternion.identity);
         enemyPool.DisableInstance(obj);
 
-        score ++;
+        kills ++;
     }
 
     private void powerupHandler() // How powerups act upon the world
@@ -514,7 +549,7 @@ public class TiltyHackerEngine : MonoBehaviour
                 case 1:
                     transform.Rotate(Vector3.forward*60*Time.fixedDeltaTime);
                     SpriteRenderer lol =  powerupObjects[0].GetComponent<SpriteRenderer>();
-                    if(powerupTime % 0.2f >= 0.1f)
+                    if(powerupTime % beamFlipRate >= beamFlipRate/2)
                     {
                         lol.flipX = true;
                         lol.flipY = true;
@@ -526,15 +561,7 @@ public class TiltyHackerEngine : MonoBehaviour
                     }
                     break;
                 case 2:
-                    if(powerupTime > 0.1f)
-                    {
-                        powerupObjects[0].GetComponentInChildren<TextMeshPro>().text = ""+Mathf.FloorToInt(powerupTime);
-                    }
-                    else
-                    {
-                        powerupObjects[0].transform.GetChild(0).gameObject.SetActive(true);
-                        powerupObjects[0].GetComponentInChildren<TextMeshPro>().text = "";
-                    }
+                    powerupObjects[0].GetComponentInChildren<TextMeshPro>().text = Mathf.FloorToInt(powerupTime).ToString();
                     break;
                 case 3:
                     bool[] infected = new bool[enemyPool.active_object_count];
@@ -589,6 +616,14 @@ public class TiltyHackerEngine : MonoBehaviour
                         transform.rotation = Quaternion.identity;
                         break;
                     case 2:
+                        GameObject.Instantiate(bombExplosionPrefab, powerupObjects[0].transform.position, Quaternion.identity);
+                        for(int i=0; i < enemyPool.active_object_count; i++)
+                        {
+                            if(Vector2.Distance(enemyPool.gameObjects[i].transform.position, powerupObjects[0].transform.position) < explosionDistance)
+                            {
+                                enemyKill(enemyPool.gameObjects[i]);
+                            }
+                        }
                         Destroy(powerupObjects[0]);
                         break;
                     case 3:
