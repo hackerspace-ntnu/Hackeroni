@@ -652,7 +652,7 @@ public class TiltyHackerEngine : MonoBehaviour
                     case 2:
                         audioSource.PlayOneShot(bombExplosionSound);
                         GameObject.Instantiate(bombExplosionPrefab, powerupObjects[0].transform.position, Quaternion.identity);
-                        for(int i=0; i < enemyPool.active_object_count; i++)
+                        for(int i = enemyPool.active_object_count-1; i >= 0; i --)
                         {
                             if(Vector2.Distance(enemyPool.gameObjects[i].transform.position, powerupObjects[0].transform.position) < explosionDistance)
                             {
