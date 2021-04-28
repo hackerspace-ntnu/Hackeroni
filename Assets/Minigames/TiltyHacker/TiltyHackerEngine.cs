@@ -41,7 +41,8 @@ public class TiltyHackerEngine : MonoBehaviour
     public float explosionDistance;
     public float beamFlipRate;
     public float safeSpawnRadius;
-    
+    public float spin2WinRotationRate;
+    public float beamRotationRate;
     public AudioClip tomatoDeadSound;
     public AudioClip powerupSound;
     public AudioClip ronaSound;
@@ -50,7 +51,6 @@ public class TiltyHackerEngine : MonoBehaviour
     public AudioClip friendSound;
     public AudioClip bombSound;
     public AudioClip bombExplosionSound;
-
     public AudioSource powerupAudioSource;
     private AudioSource audioSource;
 
@@ -94,16 +94,20 @@ public class TiltyHackerEngine : MonoBehaviour
         hatSprite.sprite = PlayerPrefManager.GetCurrentHatSprite();
 
         Bounds playerBounds = playerSprite.sprite.bounds;
-        Bounds hatBounds = hatSprite.sprite.bounds;
 
         float playerXFactor = 1/playerBounds.size.x;
         float playerYFactor = 1/playerBounds.size.y;
 
-        float hatXFactor = 1/hatBounds.size.x/2;
-        float hatYFactor = 1/hatBounds.size.y/2;
-
         transform.GetChild(0).localScale = new Vector3(playerXFactor, playerYFactor, 0);
-        transform.GetChild(1).localScale = new Vector3(hatXFactor, hatYFactor, 0);
+
+
+        if(hatSprite.sprite != null)
+        {
+            Bounds hatBounds = hatSprite.sprite.bounds;
+            float hatXFactor = 1/hatBounds.size.x/2;
+            float hatYFactor = 1/hatBounds.size.y/2;
+            transform.GetChild(1).localScale = new Vector3(hatXFactor, hatYFactor, 0);
+        }        
 
         rb = GetComponent<Rigidbody2D>();
 
@@ -573,10 +577,10 @@ public class TiltyHackerEngine : MonoBehaviour
                 switch(activePowerup)
                 {
                 case 0:
-                    transform.Rotate(Vector3.forward*360*Time.fixedDeltaTime);
+                    transform.Rotate(Vector3.forward*spin2WinRotationRate*Time.fixedDeltaTime);
                     break;
                 case 1:
-                    transform.Rotate(Vector3.forward*60*Time.fixedDeltaTime);
+                    transform.Rotate(Vector3.forward*beamRotationRate*Time.fixedDeltaTime);
                     SpriteRenderer lol =  powerupObjects[0].GetComponent<SpriteRenderer>();
                     if(powerupTime % beamFlipRate >= beamFlipRate/2)
                     {
@@ -665,8 +669,7 @@ public class TiltyHackerEngine : MonoBehaviour
                                 GameObject.Instantiate(explosionPrefab, enemyPool.gameObjects[k].transform.position, Quaternion.identity);
                                 enemyPool.gameObjects[k].GetComponent<SpriteRenderer>().sprite = angryTomat;
                                 enemyPool.gameObjects[k].transform.GetChild(0).gameObject.SetActive(false);
-                                enemyPool.DisableInstance(k); // Kan disabla enemies og øydelegga indekseringo?
-                                kills++;
+                                enemyKill(enemyPool.gameObjects[k]);
                             }
                         }
                         break;
