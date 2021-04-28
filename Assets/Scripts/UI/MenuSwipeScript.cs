@@ -21,7 +21,7 @@ public class MenuSwipeScript : MonoBehaviour, IEndDragHandler, IBeginDragHandler
         scrollRect = GetComponent<ScrollRect>();
         rect = GetComponent<RectTransform>();
     }
-
+    
     // Update is called once per frame
     void Update()
     {

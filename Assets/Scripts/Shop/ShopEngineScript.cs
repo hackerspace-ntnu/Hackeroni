@@ -48,6 +48,7 @@ public class ShopEngineScript : MonoBehaviour
     SpriteStatus[] CurrentEquipment = new SpriteStatus[3];
     ColorStatus CurrentColor = new ColorStatus();
     GameObject[] EquipmentDisplays = new GameObject[3];
+    private Sprite forgottenSprite;
 
     private int PreviousHackeronis;
     private float HackeronisAnimationTimer;
@@ -73,6 +74,8 @@ public class ShopEngineScript : MonoBehaviour
 
         DisplayShopItems(0);
         HackeroniText.GetComponent<TextMeshProUGUI>().text = Hackeronis + " Hackeronis";
+        
+        forgottenSprite = Resources.Load<Sprite>("Shop/ForgottenSprite");
     }
 
     void CheckForDiscrepancies()
@@ -259,8 +262,14 @@ public class ShopEngineScript : MonoBehaviour
         ClearShopButtons();
 
         int i = 0;
+        
+        bool isEverythingBought = true;
         foreach (SpriteStatus ShopItem in SpriteStatusLists[ItemType])
         {
+            if(ShopItem.Name.Contains("Forgotten") && isEverythingBought != true)
+            {
+                continue; 
+            }
             GameObject ShopButton = Instantiate(ShopButtonPrefab);
             ShopButton.transform.SetParent(ContentObject.transform);
             ShopButton.GetComponent<RectTransform>().localScale = new Vector3(1, 1, 1);
@@ -292,6 +301,13 @@ public class ShopEngineScript : MonoBehaviour
                 ShopButton.transform.GetChild(2).GetComponent<TextMeshProUGUI>().text = "Costs: " + ShopItem.Cost.ToString();
                 ShopButton.GetComponent<Image>().color = new Color32(61, 43, 61, 255);
                 ShopButton.GetComponent<Button>().interactable = true;
+                
+                if(ShopItem.Name.Contains("Forgotten"))
+                {
+                    if (forgottenSprite == null) forgottenSprite = Resources.Load<Sprite>("Shop/ForgottenSprite");
+                    ShopButton.transform.GetChild(0).GetComponent<Image>().sprite = forgottenSprite;
+                }
+                isEverythingBought = false;
             }
 
             i++;

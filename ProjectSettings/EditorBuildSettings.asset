@@ -29,4 +29,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/ConnectFour.unity
     guid: 703f56ca65349134d856a844889c3383
+  - enabled: 1
+    path: Assets/Scenes/SecretEnding.unity
+    guid: d39f71bd1c740e7498ebe9c6196c41cb
   m_configObjects: {}
