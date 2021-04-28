@@ -50,6 +50,10 @@ public class ConnectFourEngine : MonoBehaviour
 
     public GameObject EndScreen;
     public TextMeshProUGUI ScoreText;
+    
+    public AudioSource SoundEffectsSource;
+    public AudioClip SuccessSound;
+    public AudioClip ClickSound;
     private float EndScreenTimer;
 
     // Start is called before the first frame update
@@ -132,6 +136,8 @@ public class ConnectFourEngine : MonoBehaviour
     }
     public void PlayerAction(int Column)
     {
+        SoundEffectsSource.PlayOneShot(ClickSound);
+
         GameObject Token = Instantiate(Player1Token);
         Token.transform.SetParent(TokenParent.transform);
         Token.transform.localScale = new Vector3(1, 1, 1);
@@ -842,12 +848,14 @@ public class ConnectFourEngine : MonoBehaviour
             WinningTokenPositions = RemoveDuplicates(WinningTokenPositions);
             TokenPosDestroyList = WinningTokenPositions;
             DestroyTimer = 2.5f;
+            
         }
 
         return new int[2] { Player1Wins, Player2Wins };
     }
     void DestroyTokens()
     {
+        SoundEffectsSource.PlayOneShot(SuccessSound);
         List<GameObject> TokensToDestroy = new List<GameObject>();
 
         string TokenPosListString = "";

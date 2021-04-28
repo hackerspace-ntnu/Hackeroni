@@ -10,10 +10,12 @@ public class ConnectFourTokenScript : MonoBehaviour
 
     public List<GameObject> ParticleSystems = new List<GameObject>();
 
+    private AudioSource audioSource;
+    
     // Start is called before the first frame update
     void Start()
     {
-        
+        audioSource = GetComponent<AudioSource>(); 
     }
 
 
@@ -63,5 +65,12 @@ public class ConnectFourTokenScript : MonoBehaviour
             //Vector3 pos = Camera.main.ViewportToWorldPoint(GameObject.Find("Engine").GetComponent<ConnectFourEngine>().OpponentPointsText.transform.position);
             Particles.GetComponent<ConnectFourParticleScript>().MoveToStart(new Vector3(2.178409f, 17.84167f, -2.855647f), 0.5f);
         }
+    }
+    
+    void OnCollisionEnter(Collision collision)
+    {
+        var soundEffectVolume = PlayerPrefs.GetFloat("settings/soundEffectVolume/ConnectFour", 0.5f);
+        audioSource.volume = Mathf.Clamp01(collision.relativeVelocity.magnitude / 10f * soundEffectVolume);
+        audioSource.Play();
     }
 }

@@ -41,6 +41,18 @@ public class TiltyHackerEngine : MonoBehaviour
     public float explosionDistance;
     public float beamFlipRate;
     public float safeSpawnRadius;
+    
+    public AudioClip tomatoDeadSound;
+    public AudioClip powerupSound;
+    public AudioClip ronaSound;
+    public AudioClip spinSound;
+    public AudioClip beamSound;
+    public AudioClip friendSound;
+    public AudioClip bombSound;
+    public AudioClip bombExplosionSound;
+
+    public AudioSource powerupAudioSource;
+    private AudioSource audioSource;
 
     // Define private global variables
     private Rigidbody2D rb;
@@ -76,6 +88,7 @@ public class TiltyHackerEngine : MonoBehaviour
     }
     void Start()
     {
+        audioSource = GetComponent<AudioSource>();
         playerSprite.sprite = PlayerPrefManager.GetCurrentSkinSprite();
         playerSprite.color = PlayerPrefManager.GetCurrentColor();
         hatSprite.sprite = PlayerPrefManager.GetCurrentHatSprite();
@@ -303,6 +316,7 @@ public class TiltyHackerEngine : MonoBehaviour
 
     private void died() // Run when dead
     {
+        powerupAudioSource.Stop();
         int score = kills - 10;
         hackeronies = score; // Should be optimized.
         PlayerPrefManager.AddEarnedHackeronis(score);
@@ -405,23 +419,31 @@ public class TiltyHackerEngine : MonoBehaviour
         {
             powerups.Remove(col.gameObject);
             Destroy(col.gameObject);
+            
+            audioSource.PlayOneShot(powerupSound);
 
             if(col.tag == "Powerup0") // Spin2Win
             {
                 activePowerup = 0;
                 powerupTime = powerupDurations[0];
+                powerupAudioSource.clip = spinSound;    
+                powerupAudioSource.loop = false;
             }
             else if(col.tag == "Powerup1") // Blaster
             {
                 activePowerup = 1;
                 powerupTime = powerupDurations[1];
                 powerupObjects[0] = GameObject.Instantiate(beamPrefab, transform);
+                powerupAudioSource.clip = beamSound;    
+                powerupAudioSource.loop = true;
             }
             else if(col.tag == "Powerup2") // Bomb
             {
                 activePowerup = 2;
                 powerupTime = powerupDurations[2];
                 powerupObjects[0] = GameObject.Instantiate(bombPrefab, transform.position, Quaternion.identity);
+                powerupAudioSource.clip = bombSound;    
+                powerupAudioSource.loop = true;
             }
             else if(col.tag == "Powerup3") // Corona
             {
@@ -432,6 +454,8 @@ public class TiltyHackerEngine : MonoBehaviour
                 enemyPool.gameObjects[randint].GetComponent<SpriteRenderer>().sprite = sickTomat;
                 enemyPool.gameObjects[randint].transform.GetChild(0).gameObject.SetActive(true);
 
+                powerupAudioSource.clip = ronaSound;    
+                powerupAudioSource.loop = true;
             }
             else if(col.tag == "Powerup4") // Friend
             {
@@ -440,7 +464,10 @@ public class TiltyHackerEngine : MonoBehaviour
                 powerupObjects[0] =  GameObject.Instantiate(friendPrefab, SafeSpawn(1f), Quaternion.identity);
                 int t = Random.Range(0,360);
                 friendDirection = new Vector3(Mathf.Cos(t), Mathf.Sin(t), 0);
+                powerupAudioSource.clip = friendSound;    
+                powerupAudioSource.loop = true;
             }
+            powerupAudioSource.Play();
         }
     }
 
@@ -531,6 +558,8 @@ public class TiltyHackerEngine : MonoBehaviour
     {
         GameObject.Instantiate(explosionPrefab, obj.transform.position, Quaternion.identity);
         enemyPool.DisableInstance(obj);
+        
+        audioSource.PlayOneShot(tomatoDeadSound);
 
         kills ++;
     }
@@ -606,6 +635,7 @@ public class TiltyHackerEngine : MonoBehaviour
             }
             else
             {
+                powerupAudioSource.Stop();
                 switch(activePowerup)
                 {
                     case 0:
@@ -616,6 +646,7 @@ public class TiltyHackerEngine : MonoBehaviour
                         transform.rotation = Quaternion.identity;
                         break;
                     case 2:
+                        audioSource.PlayOneShot(bombExplosionSound);
                         GameObject.Instantiate(bombExplosionPrefab, powerupObjects[0].transform.position, Quaternion.identity);
                         for(int i=0; i < enemyPool.active_object_count; i++)
                         {
@@ -635,6 +666,7 @@ public class TiltyHackerEngine : MonoBehaviour
                                 enemyPool.gameObjects[k].GetComponent<SpriteRenderer>().sprite = angryTomat;
                                 enemyPool.gameObjects[k].transform.GetChild(0).gameObject.SetActive(false);
                                 enemyPool.DisableInstance(k); // Kan disabla enemies og øydelegga indekseringo?
+                                kills++;
                             }
                         }
                         break;
