@@ -32,4 +32,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/SecretEnding.unity
     guid: d39f71bd1c740e7498ebe9c6196c41cb
+  - enabled: 1
+    path: Assets/Scenes/CreditsScene.unity
+    guid: 96dd199fe1c763249a4c45ee9754236e
   m_configObjects: {}

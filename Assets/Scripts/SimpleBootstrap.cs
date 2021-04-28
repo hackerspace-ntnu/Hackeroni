@@ -78,6 +78,9 @@ public class SimpleBootstrap : MonoBehaviour
                 case 5:
                     MinigameScene.LoadMinigameScene("ConnectFour"); 
                     break;
+                case 6:
+                    MinigameScene.LoadMinigameScene("CreditsScene"); 
+                    break;
                 default:
                     gameLaunched = false;
                     launchedGameId = 0;

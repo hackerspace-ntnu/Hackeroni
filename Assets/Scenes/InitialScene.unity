@@ -3770,18 +3770,30 @@ PrefabInstance:
       objectReference: {fileID: 1714937289}
     - target: {fileID: 2707532808124473416, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 2707532808124473416, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2707532808124473416, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Mode
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2707532808124473416, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 2126750355}
     - target: {fileID: 2707532808124473416, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
+      value: 
+      objectReference: {fileID: 2063108301}
+    - target: {fileID: 2707532808124473416, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2707532808124473416, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_CallState
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 2707532808124473416, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
@@ -3789,11 +3801,31 @@ PrefabInstance:
       value: OnButtonPress
       objectReference: {fileID: 0}
     - target: {fileID: 2707532808124473416, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
+      value: OnButtonPress
+      objectReference: {fileID: 0}
+    - target: {fileID: 2707532808124473416, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
       value: SettingsButton, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 2707532808124473416, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
+      value: SimpleBootstrap, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 2707532808124473416, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_IntArgument
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 2707532808124473416, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_StringArgument
+      value: CreditsScene
+      objectReference: {fileID: 0}
+    - target: {fileID: 2707532808124473416, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 2707532808124473416, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 2783861646664969289, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
@@ -3806,11 +3838,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2885956005775098890, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
       propertyPath: m_text
-      value: Continue
+      value: Play credits
       objectReference: {fileID: 0}
     - target: {fileID: 2885956005775098890, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
       propertyPath: m_fontSize
-      value: 35.4
+      value: 33.45
       objectReference: {fileID: 0}
     - target: {fileID: 2975993675936534820, guid: 0ff70542ae51c6043baeb6b43bd2c602, type: 3}
       propertyPath: m_AnchorMax.x

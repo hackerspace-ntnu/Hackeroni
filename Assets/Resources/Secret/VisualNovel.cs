@@ -131,7 +131,7 @@ public class VisualNovel : MonoBehaviour
         if (currentDialogIndex >= dialog.Length)
         {
             Screen.orientation = ScreenOrientation.Portrait;
-            SceneManager.LoadSceneAsync(0);
+            SceneManager.LoadSceneAsync("CreditsScene");
             return;
         }
 
