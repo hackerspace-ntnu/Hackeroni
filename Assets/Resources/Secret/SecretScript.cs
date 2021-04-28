@@ -25,5 +25,7 @@ public class SecretScript : MonoBehaviour
     {
         Screen.orientation = ScreenOrientation.Landscape;
         SceneManager.LoadSceneAsync("SecretEnding");
+        if (SimpleBootstrap.theImmortalMusicSource != null)
+            SimpleBootstrap.theImmortalMusicSource?.Pause();
     }
 }
